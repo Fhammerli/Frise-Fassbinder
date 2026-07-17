@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — chronologie et index de l’entourage V19</title>
+<title>Fassbinder et l’Allemagne — V24 — films et entourage liés</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -396,6 +396,11 @@
   .person-film-list{margin:0;padding:0;list-style:none;display:grid;gap:7px;}
   .person-film-list li{position:relative;padding:8px 10px 8px 24px;background:#F5F7F9;border-radius:7px;font-size:14.5px;line-height:1.45;color:#24323D;}
   .person-film-list li::before{content:'›';position:absolute;left:10px;color:#E45A22;font-weight:700;}
+  .person-film-link{appearance:none;border:0;background:transparent;padding:0;color:#1D4F73;font:inherit;font-weight:600;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#A9BCC9;text-underline-offset:3px;}
+  .person-film-link:hover{color:#E45A22;text-decoration-color:#E45A22;}
+  .person-film-link:focus-visible{outline:2px solid #E45A22;outline-offset:3px;border-radius:2px;}
+  .person-film-year{margin-left:6px;color:#74818B;font-family:'IBM Plex Mono',monospace;font-size:10.5px;}
+  .person-film-unlinked{color:#4F5F6B;}
   .person-external{display:inline-flex;margin-top:5px;padding:9px 14px;border-radius:999px;background:#1D3448;color:#fff;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:11px;}
   .people-import{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;width:100%;margin-top:4px;}
   .people-status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
@@ -422,16 +427,94 @@
   .people-index-nickname,.person-nickname{margin:3px 0 7px;color:#8A5A3B;font-family:'IBM Plex Mono',monospace;font-size:10.5px;}
   @media(max-width:620px){.person-drawer{padding:20px 22px 36px}.person-drawer h2{font-size:29px}.person-profile{grid-template-columns:105px minmax(0,1fr);gap:16px}.person-photo,.person-photo-missing{width:105px}}
 
+
+  /* ===== V20 Web : démarrage, diagnostic et mode maintenance ===== */
+  body.is-loading{overflow:hidden;}
+  .app-loader{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#172A39 0%,#203D52 58%,#F06424 160%);transition:opacity .35s ease,visibility .35s ease;}
+  .app-loader.ready{opacity:0;visibility:hidden;pointer-events:none;}
+  .app-loader-card{width:min(520px,100%);padding:34px 36px;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.28);}
+  .app-loader-kicker{margin:0 0 22px;font:600 15px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#1D3448;}
+  .app-loader-track{height:7px;overflow:hidden;border-radius:999px;background:#E6EBEF;}
+  .app-loader-track span{display:block;width:8%;height:100%;border-radius:inherit;background:var(--accent);transition:width .28s ease;}
+  .app-loader-message{margin:18px 0 5px;font:600 17px 'Source Serif 4',Georgia,serif;color:#18212B;}
+  .app-loader-detail{min-height:19px;font:11px/1.55 'IBM Plex Mono',monospace;color:#67727E;}
+  .app-loader-enter{margin-top:20px;border:0;border-radius:999px;padding:10px 16px;background:#1D3448;color:#fff;font:11px 'IBM Plex Mono',monospace;cursor:pointer;}
+  #appWrap{transition:opacity .28s ease;}
+  body.is-loading #appWrap{opacity:0;}
+  .maintenance-panel{margin-top:54px;border:1px solid #D6DFE6;border-radius:14px;background:rgba(255,255,255,.7);overflow:hidden;}
+  .maintenance-panel summary{cursor:pointer;padding:15px 20px;font:11px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:#526170;}
+  .maintenance-content{padding:0 20px 20px;display:grid;gap:10px;}
+  .data-state{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:start;padding-top:10px;border-top:1px solid #E2E8ED;}
+  .data-state strong{font:10.5px 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:#1D3448;}
+  .maintenance-note{margin:6px 0 2px;font-size:13px;color:#67727E;}
+  .maintenance-note code{font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .maintenance-imports{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:5px;}
+  .maintenance-imports input{display:none;}
+  @media(max-width:620px){.app-loader-card{padding:28px 24px}.data-state{grid-template-columns:1fr;gap:4px}}
+
+
+  /* ===== V21 — Base de données des films ===== */
+  .module-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .module-buttons .people-index-button{margin-top:0;}
+  .film-index-button{display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid #C7D4DE;border-radius:999px;background:#FFFFFF;color:#1D3448;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;cursor:pointer;box-shadow:0 5px 16px rgba(20,38,52,.06);}
+  .film-index-button:hover{border-color:#E45A22;color:#E45A22;}
+  .film-overlay{position:fixed;inset:0;background:rgba(14,27,38,.42);backdrop-filter:blur(3px);z-index:1099;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+  .film-overlay.open{opacity:1;pointer-events:auto;}
+  .film-drawer{position:fixed;z-index:1100;top:0;right:0;height:100vh;width:min(620px,94vw);background:#fff;box-shadow:-18px 0 50px rgba(20,35,47,.18);transform:translateX(104%);transition:transform .25s ease;overflow-y:auto;padding:22px 28px 42px;}
+  .film-drawer.open{transform:translateX(0);}
+  .film-close{position:sticky;top:0;margin-left:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #DCE3E8;border-radius:50%;background:#fff;color:#243A4B;font-size:23px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(22,40,54,.08);z-index:2;}
+  .film-index-head{margin:8px 0 22px;}
+  .film-kicker{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#E45A22;margin:0 0 8px;}
+  .film-index-head h2,.film-profile h2{font-family:'Source Serif 4',Georgia,serif;font-size:34px;line-height:1.08;margin:0 0 10px;color:#182B3A;}
+  .film-index-search{width:100%;border:1px solid #D7E0E6;border-radius:9px;padding:11px 13px;font:14px 'Source Serif 4',Georgia,serif;color:#24323D;background:#F8FAFB;}
+  .film-index-search:focus{outline:2px solid #E45A22;outline-offset:1px;border-color:transparent;}
+  .film-index-list{display:grid;gap:10px;}
+  .film-index-entry{display:grid;grid-template-columns:62px 1fr;gap:14px;padding:14px 0;border-top:1px solid #E2E8EC;align-items:start;}
+  .film-index-year{font:600 12px 'IBM Plex Mono',monospace;color:#E45A22;padding-top:4px;}
+  .film-index-title{appearance:none;border:0;background:transparent;padding:0;color:#1D3448;font:600 19px 'Source Serif 4',Georgia,serif;cursor:pointer;text-align:left;}
+  .film-index-title:hover{color:#E45A22;}
+  .film-index-original,.film-index-meta{margin:3px 0 0;color:#74818B;font-size:13px;}
+  .film-index-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#71808C;margin-top:8px;}
+  .film-poster{width:180px;aspect-ratio:2/3;background:#EEF2F5;border:1px solid #DCE3E8;border-radius:5px;overflow:hidden;flex:none;}
+  .film-poster img{width:100%;height:100%;object-fit:cover;display:block;}
+  .film-poster-missing{width:180px;aspect-ratio:2/3;display:grid;place-items:center;text-align:center;padding:14px;background:#EEF2F5;border:1px dashed #B9C5CE;border-radius:5px;color:#71808C;font:10.5px 'IBM Plex Mono',monospace;}
+  .film-profile{display:flex;gap:22px;align-items:flex-start;margin:8px 0 26px;}
+  .film-profile-main{min-width:0;padding-top:6px;}
+  .film-original-title{margin:0 0 8px;font-style:italic;color:#66737D;}
+  .film-meta{margin:0;color:#63717C;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6;}
+  .film-section{padding:18px 0;border-top:1px solid #E2E8EC;}
+  .film-section h3{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:#E45A22;margin:0 0 9px;}
+  .film-section p{margin:0;font-size:15px;line-height:1.68;color:#263541;white-space:pre-line;}
+  .film-list{margin:0;padding-left:19px;display:grid;gap:6px;font-size:14px;line-height:1.55;}
+  .film-links{display:flex;flex-wrap:wrap;gap:7px;}
+  .film-year-link,.film-excerpt-link{border:1px solid #CBD6DE;background:#F5F8FA;color:#315D8A;border-radius:999px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;cursor:pointer;text-decoration:none;}
+  .film-year-link:hover,.film-excerpt-link:hover{background:#315D8A;color:#fff;border-color:#315D8A;}
+  .film-main-year{display:inline-flex;align-items:center;vertical-align:middle;padding:4px 9px;margin:0;font-size:10.5px;}
+  .film-none{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#87919A;}
+  @media(max-width:560px){.film-profile{display:block}.film-poster,.film-poster-missing{width:132px;margin-bottom:18px}.film-index-entry{grid-template-columns:50px 1fr}.film-drawer{padding:18px 20px 36px}}
+
 </style>
 </head>
-<body>
-<div class="wrap">
+<body class="is-loading">
+<div class="app-loader" id="appLoader" role="status" aria-live="polite">
+  <div class="app-loader-card">
+    <p class="app-loader-kicker">Fassbinder et l’Allemagne</p>
+    <div class="app-loader-track"><span id="appLoaderBar"></span></div>
+    <p class="app-loader-message" id="appLoaderMessage">Initialisation de la chronologie…</p>
+    <div class="app-loader-detail" id="appLoaderDetail"></div>
+    <button class="app-loader-enter" id="appLoaderEnter" type="button" hidden>Accéder au site</button>
+  </div>
+</div>
+<div class="wrap" id="appWrap" aria-hidden="true">
 
   <header>
     <p class="eyebrow">Chronologie de travail — usage pédagogique</p>
     <h1>Fassbinder <span>et</span> l’Allemagne</h1>
     <p class="subtitle">Chronologie à double niveau : par période, puis, sur demande, année par année. Citations, liens vidéo et analyse critique sont accessibles depuis chaque étape.</p>
-    <button class="people-index-button" id="peopleIndexButton" type="button">Index des noms <span aria-hidden="true">→</span></button>
+    <div class="module-buttons">
+      <button class="people-index-button" id="peopleIndexButton" type="button">Index des noms <span aria-hidden="true">→</span></button>
+      <button class="film-index-button" id="filmIndexButton" type="button">Films <span aria-hidden="true">→</span></button>
+    </div>
 
     <div class="legend" id="legend"></div>
   </header>
@@ -475,16 +558,29 @@
     <div id="personContent"></div>
   </aside>
 
-  <div class="importzone">
-    <label class="importlink" for="fileInput">Importer un tableau Excel mis à jour</label>
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
-    <span class="status" id="status"></span>
-    <div class="people-import">
-      <label class="importlink" for="peopleFileInput">Importer le tableau de l’entourage</label>
-      <input type="file" id="peopleFileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
-      <span class="people-status" id="peopleStatus"></span>
+  <div class="film-overlay" id="filmOverlay" aria-hidden="true"></div>
+  <aside class="film-drawer" id="filmDrawer" aria-hidden="true" aria-label="Base de données des films">
+    <button class="film-close" id="filmClose" type="button" aria-label="Fermer les films">×</button>
+    <div id="filmContent"></div>
+  </aside>
+
+  <details class="maintenance-panel">
+    <summary>État des données</summary>
+    <div class="maintenance-content">
+      <div class="data-state"><strong>Chronologie</strong><span class="status" id="status"></span></div>
+      <div class="data-state"><strong>Entourage</strong><span class="people-status" id="peopleStatus"></span></div>
+      <div class="data-state"><strong>Films</strong><span class="status" id="filmsStatus"></span></div>
+      <p class="maintenance-note">Les fichiers <code>RWF_Frise.xlsx</code>, <code>RWF_Entourage.xlsx</code> et <code>RWF_Films.xlsx</code> sont chargés automatiquement depuis le dépôt.</p>
+      <div class="maintenance-imports">
+        <label class="importlink" for="fileInput">Charger provisoirement un autre tableau de chronologie</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
+        <label class="importlink" for="peopleFileInput">Charger provisoirement un autre tableau d’entourage</label>
+        <input type="file" id="peopleFileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
+        <label class="importlink" for="filmsFileInput">Charger provisoirement un autre tableau de films</label>
+        <input type="file" id="filmsFileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
+      </div>
     </div>
-  </div>
+  </details>
 </div>
 
 <script>
@@ -493,10 +589,32 @@ const BACKGROUND_PALETTE = ['var(--t1-bg)','var(--t2-bg)','var(--t3-bg)','var(--
 const PLAY_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
 const NOTE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5z"/></svg>';
 
+const appLoader=document.getElementById('appLoader');
+const appLoaderBar=document.getElementById('appLoaderBar');
+const appLoaderMessage=document.getElementById('appLoaderMessage');
+const appLoaderDetail=document.getElementById('appLoaderDetail');
+const appLoaderEnter=document.getElementById('appLoaderEnter');
+const appWrap=document.getElementById('appWrap');
+const startupState={timeline:false,people:false,films:false,timelineError:'',peopleError:'',filmsError:''};
+function setStartupProgress(percent,message,detail=''){
+  appLoaderBar.style.width=Math.max(8,Math.min(100,percent))+'%';
+  if(message) appLoaderMessage.textContent=message;
+  appLoaderDetail.textContent=detail;
+}
+function finishStartup(){
+  const errors=[startupState.timelineError,startupState.peopleError,startupState.filmsError].filter(Boolean);
+  setStartupProgress(100,errors.length?'Site chargé avec un avertissement':'Site documentaire prêt',errors.join(' · '));
+  const reveal=()=>{appLoader.classList.add('ready');document.body.classList.remove('is-loading');appWrap.setAttribute('aria-hidden','false');};
+  if(errors.length){appLoaderEnter.hidden=false;appLoaderEnter.addEventListener('click',reveal,{once:true});setTimeout(reveal,4200);}
+  else setTimeout(reveal,320);
+}
 const PEOPLE_WORKBOOK_FILENAME = 'RWF_Entourage.xlsx';
-const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v6';
+const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v7';
 let PEOPLE_DATA = [];
 let PEOPLE_ALIAS_MAP = [];
+const FILMS_WORKBOOK_FILENAME='RWF_Films.xlsx';
+const FILMS_CACHE_KEY='RWF_Films_workbook_v1';
+let FILMS_DATA=[];
 
 
 function norm(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
@@ -508,13 +626,13 @@ function parseWeight(str){ const n=(str.match(/\d{3,4}/g)||[]).map(Number); retu
 function resolveImageSrc(v){
   if(!v) return '';
   if(/^(https?:|data:|\/|\.\/|\.\.\/)/i.test(v)) return v;
-  return 'FriseRWF_images/' + v;
+  return 'Images_Frise/' + v;
 }
 
 function resolveExcerptSrc(v){
   if(!v) return '';
   if(/^(https?:|data:|\/|\.\/|\.\.\/)/i.test(v)) return v;
-  return 'FriseRWF_extraits/' + v;
+  return 'Frise_extraits/' + v;
 }
 
 // ---------- DEFAULT EXAMPLE (illustrates all features; replace with your own content via l'import) ----------
@@ -617,6 +735,13 @@ const personOverlay=document.getElementById('personOverlay');
 const personClose=document.getElementById('personClose');
 const personContent=document.getElementById('personContent');
 const peopleIndexButton=document.getElementById('peopleIndexButton');
+const filmIndexButton=document.getElementById('filmIndexButton');
+const filmsFileInput=document.getElementById('filmsFileInput');
+const filmsStatusEl=document.getElementById('filmsStatus');
+const filmDrawer=document.getElementById('filmDrawer');
+const filmOverlay=document.getElementById('filmOverlay');
+const filmClose=document.getElementById('filmClose');
+const filmContent=document.getElementById('filmContent');
 
 
 function yearsFor(periodId){ return YEAR_DATA.filter(y=>norm(y.periodLink)===norm(periodId)); }
@@ -1140,7 +1265,8 @@ async function loadSharedWorkbook(){
   // Sur SharePoint ou tout serveur web, le classeur portant ce nom est chargé
   // automatiquement à chaque ouverture. Le paramètre évite un ancien cache réseau.
   if(location.protocol==='http:' || location.protocol==='https:'){
-    statusEl.textContent='Chargement du tableau partagé…';
+    statusEl.textContent='Chargement de RWF_Frise.xlsx…';
+    setStartupProgress(22,'Chargement de la chronologie…','RWF_Frise.xlsx');
     statusEl.className='status';
     try{
       const url=new URL(WORKBOOK_FILENAME,location.href);
@@ -1148,14 +1274,17 @@ async function loadSharedWorkbook(){
       const response=await fetch(url.toString(),{cache:'no-store'});
       if(!response.ok) throw new Error(`fichier introuvable (${response.status})`);
       const buffer=await response.arrayBuffer();
-      applyWorkbook(buffer,'Tableau partagé chargé automatiquement');
-      return;
+      applyWorkbook(buffer,'RWF_Frise.xlsx chargé automatiquement');
+      startupState.timeline=true;
+      setStartupProgress(58,'Chronologie chargée','Chargement de l’entourage…');
+      return true;
     }catch(err){
       console.warn('Chargement automatique impossible :',err);
-      statusEl.textContent='Tableau partagé inaccessible — données intégrées affichées';
+      statusEl.textContent='RWF_Frise.xlsx inaccessible — données intégrées affichées';
+      startupState.timelineError='Chronologie Excel introuvable : données de secours affichées';
       statusEl.className='status err';
       rerenderAll();
-      return;
+      return false;
     }
   }
 
@@ -1453,10 +1582,69 @@ function personSection(title,html){
   return '<section class="person-section"><h3>'+escapeHTML(title)+'</h3><p>'+html+'</p></section>';
 }
 
+function plainTextFromHTML(value){
+  const box=document.createElement('div');
+  box.innerHTML=value||'';
+  return (box.textContent||box.innerText||'').replace(/\s+/g,' ').trim();
+}
+
+function normalizedWorkTitle(value){
+  return headerNorm(plainTextFromHTML(value))
+    .replace(/\b(photographie|image|montage|musique|scenario|production|realisation|acteur|actrice)\s*:?\s*/g,' ')
+    .replace(/\b(tv|telefilm|serie)\b/g,' ')
+    .replace(/\b(19|20)\d{2}\b/g,' ')
+    .replace(/\ble\s+le\b/g,'le')
+    .replace(/ingoldstad\b/g,'ingolstadt')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function filmsDetectedInEntry(entry){
+  if(!FILMS_DATA.length) return [];
+  const source=normalizedWorkTitle(entry);
+  if(!source) return [];
+  const detected=[];
+  FILMS_DATA.forEach(film=>{
+    const candidates=[film.title,film.original].filter(Boolean).map(normalizedWorkTitle).filter(Boolean);
+    const matched=candidates.some(title=>
+      source.includes(title) ||
+      (source.length>=7 && title.includes(source))
+    );
+    if(matched) detected.push(film);
+  });
+  return detected.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
+}
+
+function resolvedPersonFilms(films){
+  const linked=[], unresolved=[];
+  const seen=new Set();
+  (films||[]).forEach(entry=>{
+    const matches=filmsDetectedInEntry(entry);
+    if(matches.length){
+      matches.forEach(film=>{
+        if(seen.has(film.id)) return;
+        seen.add(film.id); linked.push(film);
+      });
+    }else{
+      const text=plainTextFromHTML(entry);
+      if(text) unresolved.push(text);
+    }
+  });
+  linked.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
+  return {linked,unresolved:uniqueNonEmpty(unresolved)};
+}
+
 function filmographySection(films){
   if(!films || !films.length) return '';
-  return '<section class="person-section"><h3>Œuvres de Fassbinder</h3><ul class="person-film-list">'+
-    films.map(f=>'<li>'+f+'</li>').join('')+'</ul></section>';
+  const resolved=resolvedPersonFilms(films);
+  const linkedItems=resolved.linked.map(f=>
+    '<li><button class="person-film-link" type="button" data-person-film-id="'+escapeHTML(f.id)+'">'+escapeHTML(f.title)+'</button>'+
+    (f.year?'<span class="person-film-year">('+escapeHTML(f.year)+')</span>':'')+'</li>'
+  );
+  const unresolvedItems=resolved.unresolved.map(f=>'<li><span class="person-film-unlinked">'+escapeHTML(f)+'</span></li>');
+  const items=[...linkedItems,...unresolvedItems];
+  if(!items.length) return '';
+  return '<section class="person-section"><h3>Œuvres de Fassbinder</h3><ul class="person-film-list">'+items.join('')+'</ul></section>';
 }
 
 function navigateToCitedYear(yearId){
@@ -1593,20 +1781,22 @@ function applyPeopleWorkbook(buffer,label,save=false){
 }
 
 async function loadPeopleWorkbook(){
+  setStartupProgress(64,'Chargement de l’entourage…','RWF_Entourage.xlsx');
   if(location.protocol==='http:' || location.protocol==='https:'){
     try{
       const url=new URL(PEOPLE_WORKBOOK_FILENAME,location.href); url.searchParams.set('v',Date.now().toString());
       const response=await fetch(url.toString(),{cache:'no-store'});
       if(!response.ok) throw new Error('introuvable');
-      applyPeopleWorkbook(await response.arrayBuffer(),'Tableau entourage chargé'); return;
-    }catch(err){ peopleStatusEl.textContent='Tableau entourage non chargé'; }
+      applyPeopleWorkbook(await response.arrayBuffer(),'RWF_Entourage.xlsx chargé automatiquement'); startupState.people=true; setStartupProgress(92,'Entourage chargé','Préparation de l’index des noms…'); return true;
+    }catch(err){ peopleStatusEl.textContent='RWF_Entourage.xlsx non chargé'; startupState.peopleError='Tableau de l’entourage introuvable'; }
   }
   const cached=localStorage.getItem(PEOPLE_CACHE_KEY);
   if(cached){
-    try{ applyPeopleWorkbook(base64ToArrayBuffer(cached),'Dernier tableau entourage restauré'); return; }
+    try{ applyPeopleWorkbook(base64ToArrayBuffer(cached),'Dernier tableau entourage restauré'); startupState.people=true; return true; }
     catch(err){ localStorage.removeItem(PEOPLE_CACHE_KEY); }
   }
-  peopleStatusEl.textContent='Importez RWF_Entourage.xlsx pour activer les noms cliquables';
+  peopleStatusEl.textContent='RWF_Entourage.xlsx requis pour activer les noms cliquables';
+  return false;
 }
 
 peopleFileInput.addEventListener('change',e=>{
@@ -1620,8 +1810,153 @@ peopleFileInput.addEventListener('change',e=>{
   reader.readAsArrayBuffer(file);
 });
 
-loadSharedWorkbook();
-loadPeopleWorkbook();
+
+// ---------- BASE DE DONNÉES DES FILMS (V21) ----------
+function resolveFilmImageSrc(value){
+  if(!value) return '';
+  const clean=value.toString().trim().replace(/\\/g,'/');
+  if(!clean || /^#(VALUE|N\/A|REF|NAME|DIV\/0)/i.test(clean)) return '';
+  if(/^(https?:|data:|blob:|\/|\.\/|\.\.\/)/i.test(clean)) return clean;
+  const encoded=clean.split('/').map(part=>encodeURIComponent(part)).join('/');
+  return clean.toLocaleLowerCase('fr').startsWith('films_images/') ? encoded : 'Films_images/'+encoded;
+}
+function splitFilmValues(value){
+  return (value||'').toString().split(/[|\n]/).map(v=>v.trim()).filter(Boolean);
+}
+function classifyFilmHeader(headerRow){
+  const c={id:null,title:null,original:null,year:null,type:null,duration:null,country:null,director:null,screenplay:null,cinematography:null,editing:null,music:null,production:null,cast:null,crew:null,synopsis:null,excerpts:null,analysis:null,bibliography:null,poster:null,posterLegend:null,posterSource:null,timeline:null,keywords:null,sources:null,status:null};
+  headerRow.forEach((value,i)=>{
+    const h=headerNorm(value); if(!h) return;
+    if(h==='id'||h.includes('identifiant')) c.id=i;
+    else if(h==='titre francais'||h==='titre'||h==='film') c.title=i;
+    else if(h.includes('titre original')) c.original=i;
+    else if(h==='annee'||h==='date') c.year=i;
+    else if(h==='type'||h.includes('format')) c.type=i;
+    else if(h.includes('duree')) c.duration=i;
+    else if(h==='pays'||h.includes('pays de production')) c.country=i;
+    else if(h.includes('realisation')||h==='realisateur') c.director=i;
+    else if(h.includes('scenario')) c.screenplay=i;
+    else if(h==='image'||h.includes('photographie')||h.includes('direction de la photographie')) c.cinematography=i;
+    else if(h.includes('montage')) c.editing=i;
+    else if(h.includes('musique')) c.music=i;
+    else if(h.includes('production')) c.production=i;
+    else if(h.includes('distribution artistique')||h==='distribution'||h==='interpretes') c.cast=i;
+    else if(h.includes('equipe technique')) c.crew=i;
+    else if(h.includes('synopsis')||h.includes('resume')) c.synopsis=i;
+    else if(h.includes('extrait')) c.excerpts=i;
+    else if(h.includes('analyse')) c.analysis=i;
+    else if(h.includes('bibliographie')) c.bibliography=i;
+    else if(h==='affiche'||h.includes('image affiche')) c.poster=i;
+    else if(h.includes('legende affiche')) c.posterLegend=i;
+    else if(h.includes('source affiche')) c.posterSource=i;
+    else if(h.includes('liens chronologie')||h.includes('lien chronologie')||h.includes('annees frise')) c.timeline=i;
+    else if(h.includes('mot cle')) c.keywords=i;
+    else if(h==='sources'||h==='source') c.sources=i;
+    else if(h==='statut') c.status=i;
+  });
+  return c;
+}
+function filmSlug(value){return headerNorm(value||'film').replace(/\s+/g,'-')||'film';}
+function parseFilmsWorkbook(buffer){
+  const wb=XLSX.read(buffer,{type:'array',cellHTML:true,cellStyles:true});
+  for(const sheetName of wb.SheetNames){
+    const ws=wb.Sheets[sheetName], rows=sheetToRows(ws);
+    let headerIndex=-1,cols=null;
+    for(let r=0;r<Math.min(rows.length,30);r++){
+      const candidate=classifyFilmHeader(rows[r]);
+      if(candidate.title!=null && candidate.year!=null){headerIndex=r;cols=candidate;break;}
+    }
+    if(headerIndex<0) continue;
+    const offset=rows[headerIndex]._colOffset, films=[];
+    for(let r=headerIndex+1;r<rows.length;r++){
+      const row=rows[r];
+      const plain=col=>col==null?'':(row[col]??'').toString().trim();
+      const rich=col=>col==null?'':getCellRichHTML(ws,row._physicalRow,offset+col).trim();
+      const title=plain(cols.title); if(!title) continue;
+      const year=plain(cols.year);
+      films.push({
+        id:plain(cols.id)||('film-'+filmSlug(title)+'-'+r), title, original:plain(cols.original), year,
+        type:plain(cols.type), duration:plain(cols.duration), country:plain(cols.country), director:plain(cols.director),
+        screenplay:rich(cols.screenplay), cinematography:rich(cols.cinematography), editing:rich(cols.editing), music:rich(cols.music), production:rich(cols.production),
+        cast:splitFilmValues(rich(cols.cast)), crew:splitFilmValues(rich(cols.crew)), synopsis:rich(cols.synopsis),
+        excerpts:splitFilmValues(plain(cols.excerpts)), analysis:rich(cols.analysis), bibliography:splitFilmValues(rich(cols.bibliography)),
+        poster:resolveFilmImageSrc(plain(cols.poster)), posterLegend:plain(cols.posterLegend), posterSource:plain(cols.posterSource),
+        timelineYears:splitFilmValues(plain(cols.timeline)), keywords:splitFilmValues(plain(cols.keywords)), sources:splitFilmValues(plain(cols.sources)), status:plain(cols.status)
+      });
+    }
+    if(films.length) return films;
+  }
+  throw new Error('Aucune feuille contenant les colonnes « Titre français » et « Année » n’a été trouvée.');
+}
+function filmSection(title,html){
+  if(!html || !html.toString().trim()) return '';
+  return '<section class="film-section"><h3>'+escapeHTML(title)+'</h3><p>'+html+'</p></section>';
+}
+function filmListSection(title,items){
+  if(!items || !items.length) return '';
+  return '<section class="film-section"><h3>'+escapeHTML(title)+'</h3><ul class="film-list">'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul></section>';
+}
+function renderFilmIndex(filter=''){
+  const q=norm(filter);
+  const data=[...FILMS_DATA].filter(f=>!q||norm([f.title,f.original,f.year,f.type,f.director,(f.keywords||[]).join(' ')].join(' ')).includes(q))
+    .sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
+  filmContent.querySelector('.film-index-list').innerHTML=data.map(f=>
+    '<article class="film-index-entry"><div class="film-index-year">'+escapeHTML(f.year||'—')+'</div><div><button class="film-index-title" type="button" data-film-id="'+escapeHTML(f.id)+'">'+escapeHTML(f.title)+'</button>'+
+    (f.original&&norm(f.original)!==norm(f.title)?'<p class="film-index-original">'+escapeHTML(f.original)+'</p>':'')+
+    '<p class="film-index-meta">'+escapeHTML([f.type,f.director].filter(Boolean).join(' · '))+'</p></div></article>'
+  ).join('')||'<p class="film-none">Aucun film ne correspond à cette recherche.</p>';
+  filmContent.querySelector('.film-index-count').textContent=data.length+' œuvre'+(data.length>1?'s':'')+' affichée'+(data.length>1?'s':'');
+}
+function openFilmIndex(){
+  filmContent.innerHTML='<div class="film-index-head"><p class="film-kicker">Filmographie de Fassbinder</p><h2>Base de données des films</h2><input class="film-index-search" id="filmIndexSearch" type="search" placeholder="Rechercher un titre, une année, une personne…"><div class="film-index-count"></div></div><div class="film-index-list"></div>';
+  renderFilmIndex('');
+  const search=filmContent.querySelector('#filmIndexSearch'); search?.addEventListener('input',()=>renderFilmIndex(search.value));
+  filmDrawer.classList.add('open');filmOverlay.classList.add('open');filmDrawer.setAttribute('aria-hidden','false');filmOverlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>search?.focus(),30);
+}
+function openFilm(filmId){
+  const f=FILMS_DATA.find(x=>x.id===filmId); if(!f) return;
+  const poster=f.poster?'<div class="film-poster"><img src="'+escapeHTML(f.poster)+'" alt="Affiche de '+escapeHTML(f.title)+'"></div>':'<div class="film-poster-missing">Affiche non renseignée<br>Films_images/</div>';
+  const metaParts=[f.type,f.duration?(f.duration+' min'):'',f.country].filter(Boolean);
+  const yearMeta=f.year
+    ? '<button class="film-year-link film-main-year" data-film-year="'+escapeHTML(f.year)+'" type="button" title="Revenir à '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>'
+    : '';
+  const metaHTML=[yearMeta,metaParts.length?'<span>'+escapeHTML(metaParts.join(' · '))+'</span>':''].filter(Boolean).join('<span aria-hidden="true"> · </span>');
+  const credits=[['Réalisation',f.director],['Scénario',f.screenplay],['Image',f.cinematography],['Montage',f.editing],['Musique',f.music],['Production',f.production]].filter(x=>x[1]).map(x=>'<li><strong>'+escapeHTML(x[0])+' :</strong> '+x[1]+'</li>');
+  const chronology=(f.timelineYears||[]).length?'<section class="film-section"><h3>Liens avec la chronologie</h3><div class="film-links">'+f.timelineYears.map(y=>'<button class="film-year-link" data-film-year="'+escapeHTML(y)+'" type="button">'+escapeHTML(y)+'</button>').join('')+'</div></section>':'';
+  const excerpts=(f.excerpts||[]).length?'<section class="film-section"><h3>Extraits</h3><div class="film-links">'+f.excerpts.map((x,i)=>'<a class="film-excerpt-link" href="'+escapeHTML(resolveExcerptSrc(x))+'" target="_blank" rel="noopener">Extrait '+(i+1)+'</a>').join('')+'</div></section>':'';
+  filmContent.innerHTML='<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+filmListSection('Distribution artistique',f.cast)+filmListSection('Autres membres de l’équipe',f.crew)+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+chronology+filmListSection('Sources',f.sources);
+  const img=filmContent.querySelector('.film-poster img'); if(img) img.addEventListener('error',()=>img.closest('.film-poster').outerHTML='<div class="film-poster-missing">Image introuvable<br>'+escapeHTML(f.poster.replace(/^Films_images\//,''))+'</div>',{once:true});
+  filmDrawer.classList.add('open');
+  filmOverlay.classList.add('open');
+  filmDrawer.setAttribute('aria-hidden','false');
+  filmOverlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  filmClose.focus();
+}
+function closeFilm(){filmDrawer.classList.remove('open');filmOverlay.classList.remove('open');filmDrawer.setAttribute('aria-hidden','true');filmOverlay.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function cacheFilmsWorkbook(buffer){try{localStorage.setItem(FILMS_CACHE_KEY,arrayBufferToBase64(buffer));}catch(err){console.warn('Cache des films impossible.',err);}}
+function applyFilmsWorkbook(buffer,label,save=false){FILMS_DATA=parseFilmsWorkbook(buffer);if(save)cacheFilmsWorkbook(buffer);filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');filmsStatusEl.className='status ok';}
+async function loadFilmsWorkbook(){
+  setStartupProgress(93,'Chargement des films…','RWF_Films.xlsx');
+  if(location.protocol==='http:'||location.protocol==='https:'){
+    try{const url=new URL(FILMS_WORKBOOK_FILENAME,location.href);url.searchParams.set('v',Date.now().toString());const response=await fetch(url.toString(),{cache:'no-store'});if(!response.ok)throw new Error('introuvable');applyFilmsWorkbook(await response.arrayBuffer(),'RWF_Films.xlsx chargé automatiquement');startupState.films=true;setStartupProgress(98,'Films chargés','Préparation de la base documentaire…');return true;}
+    catch(err){filmsStatusEl.textContent='RWF_Films.xlsx non chargé';filmsStatusEl.className='status err';startupState.filmsError='Tableau des films introuvable';}
+  }
+  const cached=localStorage.getItem(FILMS_CACHE_KEY);if(cached){try{applyFilmsWorkbook(base64ToArrayBuffer(cached),'Dernier tableau de films restauré');startupState.films=true;return true;}catch(err){localStorage.removeItem(FILMS_CACHE_KEY);}}
+  return false;
+}
+filmsFileInput.addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=evt=>{try{applyFilmsWorkbook(evt.target.result,'Tableau de films importé et mémorisé',true);}catch(err){filmsStatusEl.textContent='Erreur : '+err.message;filmsStatusEl.className='status err';}};reader.readAsArrayBuffer(file);});
+filmIndexButton.addEventListener('click',openFilmIndex);filmClose.addEventListener('click',closeFilm);filmOverlay.addEventListener('click',closeFilm);
+document.addEventListener('click',e=>{const personFilmButton=e.target.closest('[data-person-film-id]');if(personFilmButton){closePerson();openFilm(personFilmButton.dataset.personFilmId);return;}const filmButton=e.target.closest('[data-film-id]');if(filmButton){openFilm(filmButton.dataset.filmId);return;}const yearButton=e.target.closest('[data-film-year]');if(yearButton){closeFilm();navigateToCitedYear(yearButton.dataset.filmYear);}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
+
+(async function startV24(){
+  setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
+  await loadSharedWorkbook();
+  await loadFilmsWorkbook();
+  await loadPeopleWorkbook();
+  finishStartup();
+})();
 </script>
 
 </body>
