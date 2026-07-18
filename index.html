@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — V29 — contrôle automatique de cohérence</title>
+<title>Fassbinder et l’Allemagne — V29.1 — Entourage V30 compatible</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -510,29 +510,6 @@
   .cross-nav button:hover{background:#315D8A;color:#fff;border-color:#315D8A;}
   .person-film-year-button{border:0;background:transparent;color:#74818B;font-family:'IBM Plex Mono',monospace;font-size:10.5px;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;text-decoration-color:#CBD6DE;text-underline-offset:3px;}
   .person-film-year-button:hover{color:#315D8A;text-decoration-color:#315D8A;}
-
-  /* ===== V29 : contrôle automatique de cohérence ===== */
-  .integrity-box{margin-top:8px;padding:16px;border:1px solid #D6DFE6;border-radius:10px;background:#fff;}
-  .integrity-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
-  .integrity-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;margin:0;color:var(--ink);}
-  .integrity-actions{display:flex;gap:8px;flex-wrap:wrap;}
-  .integrity-button{font:11px 'IBM Plex Mono',monospace;border:1px solid #C8D2DB;background:#F8FAFC;color:#40505E;border-radius:999px;padding:8px 12px;cursor:pointer;}
-  .integrity-button:hover{border-color:var(--accent);color:var(--accent-deep);}
-  .integrity-summary{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0 0;}
-  .integrity-count{font:11px 'IBM Plex Mono',monospace;padding:5px 9px;border-radius:999px;background:#EEF2F5;color:#536270;}
-  .integrity-count.error{background:#FBECEA;color:#9B352B;}
-  .integrity-count.warning{background:#FFF4DD;color:#8A5A00;}
-  .integrity-count.ok{background:#E8F5EE;color:#246247;}
-  .integrity-report{margin-top:12px;max-height:330px;overflow:auto;border-top:1px solid #E2E8EE;}
-  .integrity-empty{font-size:13px;color:#526170;padding:14px 0 2px;}
-  .integrity-item{display:grid;grid-template-columns:80px minmax(120px,180px) 1fr;gap:10px;padding:10px 2px;border-bottom:1px solid #EDF1F4;font-size:12.5px;line-height:1.45;}
-  .integrity-severity{font:10px 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;}
-  .integrity-item.error .integrity-severity{color:#A33B30;}
-  .integrity-item.warning .integrity-severity{color:#8A5A00;}
-  .integrity-item.info .integrity-severity{color:#526170;}
-  .integrity-location{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#67727E;word-break:break-word;}
-  @media(max-width:720px){.integrity-item{grid-template-columns:72px 1fr}.integrity-message{grid-column:1/-1}.integrity-actions{width:100%}}
-
 </style>
 </head>
 <body class="is-loading">
@@ -611,17 +588,6 @@
       <div class="data-state"><strong>Entourage</strong><span class="people-status" id="peopleStatus"></span></div>
       <div class="data-state"><strong>Films</strong><span class="status" id="filmsStatus"></span></div>
       <p class="maintenance-note">Les fichiers <code>RWF_Frise.xlsx</code>, <code>RWF_Entourage.xlsx</code> et <code>RWF_Films.xlsx</code> sont chargés automatiquement depuis le dépôt.</p>
-      <div class="integrity-box" id="integrityBox">
-        <div class="integrity-head">
-          <h3 class="integrity-title">Contrôle automatique de cohérence</h3>
-          <div class="integrity-actions">
-            <button class="integrity-button" id="integrityRun" type="button">Relancer le contrôle</button>
-            <button class="integrity-button" id="integrityExport" type="button">Exporter le rapport CSV</button>
-          </div>
-        </div>
-        <div class="integrity-summary" id="integritySummary"></div>
-        <div class="integrity-report" id="integrityReport" aria-live="polite"></div>
-      </div>
       <div class="maintenance-imports">
         <label class="importlink" for="fileInput">Charger provisoirement un autre tableau de chronologie</label>
         <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream">
@@ -660,7 +626,7 @@ function finishStartup(){
   else setTimeout(reveal,320);
 }
 const PEOPLE_WORKBOOK_FILENAME = 'RWF_Entourage.xlsx';
-const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v8_entourage6';
+const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v9_v30';
 let PEOPLE_DATA = [];
 let PEOPLE_ALIAS_MAP = [];
 const FILMS_WORKBOOK_FILENAME='RWF_Films.xlsx';
@@ -1309,7 +1275,6 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   if(!periods) throw new Error("Aucune feuille avec une ligne d'en-tête « Dates » trouvée.");
   PERIOD_DATA=periods;
   YEAR_DATA=years||[];
-  scheduleIntegrityCheck();
   TRACK_LABELS=periods[0].trackLabels;
   if(saveLocally) cacheWorkbook(buffer);
   const detected=[];
@@ -1403,19 +1368,19 @@ function classifyPeopleHeader(headerRow){
   const cols={
     name:null, firstName:null, sortName:null, displayName:null, nickname:null, internalId:null, normalizedId:null,
     aliases:null, role:null, stratum:null, collaborationType:null,
-    bio:null, relation:null, filmography:null, universeRole:null,
+    bio:null, relation:null, filmography:null, filmIds:null, unresolvedWorks:null, universeRole:null,
     image:null, source:null, dates:null, link:null
   };
   headerRow.forEach((value,c)=>{
     const h=headerNorm(value);
     if(!h) return;
-    if(h.includes('id normalise') || h.includes('identifiant normalise')) cols.normalizedId=c;
-    else if(h==='id' || h==='identifiant' || h==='identifiant personne' || h==='cle') cols.internalId=c;
+    if(h==='id canonique' || h.includes('id normalise') || h.includes('identifiant normalise')) cols.normalizedId=c;
+    else if(h==='id' || h==='ancien id' || h==='identifiant' || h==='identifiant personne' || h==='cle') cols.internalId=c;
     else if(h==='nom tri' || h==='nom de tri' || h==='nom classement' || h==='nom pour le tri') cols.sortName=c;
-    else if(h==='nom affichage' || h==='nom d affichage' || h==='nom complet affiche' || h==='nom usuel') cols.displayName=c;
-    else if(h==='prenom' || h==='prenoms' || h==='first name') cols.firstName=c;
+    else if(h==='nom canonique' || h==='nom affichage' || h==='nom d affichage' || h==='nom complet affiche' || h==='nom usuel') cols.displayName=c;
+    else if(h==='prenom' || h==='prenom source' || h==='prenoms' || h==='first name') cols.firstName=c;
     else if(h==='surnom' || h==='surnoms' || h==='nickname') cols.nickname=c;
-    else if(h==='nom' || h==='nom de famille' || h==='patronyme' || h==='nom complet' || h==='personne' || h==='name') cols.name=c;
+    else if(h==='nom' || h==='nom source' || h==='nom de famille' || h==='patronyme' || h==='nom complet' || h==='personne' || h==='name') cols.name=c;
     else if(h.includes('variante') || h.includes('alias') || h.includes('autre nom')) cols.aliases=c;
     else if(h==='strate' || h.includes('cercle') || h.includes('groupe')) cols.stratum=c;
     else if(h.includes('fonction dominante') || h==='fonction' || h.includes('profession') || h.includes('activite')) cols.role=c;
@@ -1423,6 +1388,8 @@ function classifyPeopleHeader(headerRow){
     else if(h.includes('vie privee') || h.includes('lien avec fassbinder') || h.includes('relation avec fassbinder')) cols.relation=c;
     else if(h.includes('role dans') && h.includes('fassbinder')) cols.universeRole=c;
     else if(h.includes('biographie') || h==='bio' || h.includes('presentation')) cols.bio=c;
+    else if(h.includes('ids films') && (h.includes('oeuvres de fassbinder') || h.includes('uvres de fassbinder'))) cols.filmIds=c;
+    else if(h.includes('oeuvres non rapprochees') || h.includes('uvres non rapprochees')) cols.unresolvedWorks=c;
     else if(h.includes('filmographie') || h.includes('films avec') || h.includes('oeuvres de fassbinder') || h.includes('uvres de fassbinder') || h==='oeuvres' || h==='uvres') cols.filmography=c;
     else if(h.includes('image') || h.includes('photo') || h.includes('portrait')) cols.image=c;
     else if(h.includes('source')) cols.source=c;
@@ -1517,7 +1484,7 @@ function parsePeopleWorkbook(buffer){
           nicknames,
           aliases:[displayName,rawName,legacyCommaName,sortName,legacyId,explicitId,...explicitAliases].filter(Boolean),
           roleValues:[], stratumValues:[], collaborationValues:[], bioValues:[],
-          relationValues:[], filmographyValues:[], universeRoleValues:[],
+          relationValues:[], filmographyValues:[], filmIdValues:[], unresolvedWorkValues:[], universeRoleValues:[],
           image:'', sourceValues:[], datesValues:[], link:''
         };
         people.push(currentPerson);
@@ -1533,6 +1500,8 @@ function parsePeopleWorkbook(buffer){
       add(currentPerson.bioValues,rich(cols.bio));
       add(currentPerson.relationValues,rich(cols.relation));
       add(currentPerson.filmographyValues,plain(cols.filmography));
+      add(currentPerson.filmIdValues,plain(cols.filmIds));
+      add(currentPerson.unresolvedWorkValues,plain(cols.unresolvedWorks));
       add(currentPerson.universeRoleValues,rich(cols.universeRole));
       add(currentPerson.sourceValues,plain(cols.source));
       add(currentPerson.datesValues,plain(cols.dates));
@@ -1561,6 +1530,8 @@ function parsePeopleWorkbook(buffer){
     bio:joinRichValues(person.bioValues),
     relation:joinRichValues(person.relationValues),
     filmography:uniqueNonEmpty(person.filmographyValues),
+    filmIds:uniqueNonEmpty(person.filmIdValues.flatMap(splitPeopleValues)),
+    unresolvedWorks:uniqueNonEmpty(person.unresolvedWorkValues.flatMap(splitPeopleValues)),
     universeRole:joinRichValues(person.universeRoleValues),
     image:person.image,
     source:uniqueNonEmpty(person.sourceValues).join(' · '),
@@ -1687,28 +1658,41 @@ function filmsDetectedInEntry(entry){
   return detected.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
 }
 
-function resolvedPersonFilms(films){
+function resolvedPersonFilms(films,filmIds=[],explicitUnresolved=[]){
   const linked=[], unresolved=[];
   const seen=new Set();
-  (films||[]).forEach(entry=>{
-    const matches=filmsDetectedInEntry(entry);
-    if(matches.length){
-      matches.forEach(film=>{
-        if(seen.has(film.id)) return;
-        seen.add(film.id); linked.push(film);
-      });
-    }else{
-      const text=plainTextFromHTML(entry);
-      if(text) unresolved.push(text);
-    }
-  });
+  const exactIds=uniqueNonEmpty(filmIds||[]);
+  if(exactIds.length){
+    exactIds.forEach((id,index)=>{
+      const film=FILMS_DATA.find(candidate=>candidate.id===id);
+      if(film && !seen.has(film.id)){ seen.add(film.id); linked.push(film); }
+      else if(!film){
+        const label=plainTextFromHTML((films||[])[index]||'');
+        if(label) unresolved.push(label);
+      }
+    });
+  }else{
+    (films||[]).forEach(entry=>{
+      const matches=filmsDetectedInEntry(entry);
+      if(matches.length){
+        matches.forEach(film=>{
+          if(seen.has(film.id)) return;
+          seen.add(film.id); linked.push(film);
+        });
+      }else{
+        const label=plainTextFromHTML(entry);
+        if(label) unresolved.push(label);
+      }
+    });
+  }
+  (explicitUnresolved||[]).forEach(entry=>{ const label=plainTextFromHTML(entry); if(label) unresolved.push(label); });
   linked.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
   return {linked,unresolved:uniqueNonEmpty(unresolved)};
 }
 
-function filmographySection(films){
-  if(!films || !films.length) return '';
-  const resolved=resolvedPersonFilms(films);
+function filmographySection(films,filmIds=[],explicitUnresolved=[]){
+  if((!films || !films.length) && (!filmIds || !filmIds.length) && (!explicitUnresolved || !explicitUnresolved.length)) return '';
+  const resolved=resolvedPersonFilms(films,filmIds,explicitUnresolved);
   const linkedItems=resolved.linked.map(f=>
     '<li><button class="person-film-link" type="button" data-person-film-id="'+escapeHTML(f.id)+'">'+escapeHTML(f.title)+'</button>'+
     (f.year?'<button class="person-film-year-button" type="button" data-person-film-year="'+escapeHTML(f.year)+'" title="Voir '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>':'')+'</li>'
@@ -1806,7 +1790,7 @@ function openPerson(personId,origin=null){
     personSection('Biographie',person.bio)+
     personSection('Vie privée / lien avec Fassbinder',person.relation)+
     personSection('Rôle dans l’univers Fassbinder',person.universeRole)+
-    filmographySection(person.filmography)+
+    filmographySection(person.filmography,person.filmIds,person.unresolvedWorks)+
     (person.source?personSection('Source',escapeHTML(person.source)):'')+
     (person.link?'<section class="person-section"><a class="person-external" href="'+escapeHTML(person.link)+'" target="_blank" rel="noopener">Ouvrir la notice externe</a></section>':'');
   const portrait=personContent.querySelector('.person-photo img');
@@ -1855,7 +1839,7 @@ function applyPeopleWorkbook(buffer,label,save=false){
   rebuildPeopleOccurrences();
   if(save) cachePeopleWorkbook(buffer);
   peopleStatusEl.textContent=label+' — '+PEOPLE_DATA.length+' fiche'+(PEOPLE_DATA.length>1?'s':'')+' détectée'+(PEOPLE_DATA.length>1?'s':'');
-  peopleStatusEl.className='people-status ok';scheduleIntegrityCheck();
+  peopleStatusEl.className='people-status ok';
   if(mode==='period') renderRow(PERIOD_DATA[current]); else renderRow(yearList[yearIndex]);
 }
 
@@ -2094,7 +2078,7 @@ function openFilm(filmId,origin=null){
 }
 function closeFilm(){filmDrawer.classList.remove('open');filmOverlay.classList.remove('open');filmDrawer.setAttribute('aria-hidden','true');filmOverlay.setAttribute('aria-hidden','true');document.body.style.overflow='';activeFilmId=null;}
 function cacheFilmsWorkbook(buffer){try{localStorage.setItem(FILMS_CACHE_KEY,arrayBufferToBase64(buffer));}catch(err){console.warn('Cache des films impossible.',err);}}
-function applyFilmsWorkbook(buffer,label,save=false){FILMS_DATA=parseFilmsWorkbook(buffer);if(save)cacheFilmsWorkbook(buffer);filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');filmsStatusEl.className='status ok';scheduleIntegrityCheck();}
+function applyFilmsWorkbook(buffer,label,save=false){FILMS_DATA=parseFilmsWorkbook(buffer);if(save)cacheFilmsWorkbook(buffer);filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');filmsStatusEl.className='status ok';}
 async function loadFilmsWorkbook(){
   setStartupProgress(93,'Chargement des films…','RWF_Films.xlsx');
   if(location.protocol==='http:'||location.protocol==='https:'){
@@ -2124,135 +2108,11 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
 
-
-// ===== V29 : contrôle automatique de cohérence =====
-const integrityRunButton=document.getElementById('integrityRun');
-const integrityExportButton=document.getElementById('integrityExport');
-const integritySummary=document.getElementById('integritySummary');
-const integrityReport=document.getElementById('integrityReport');
-let INTEGRITY_RESULTS=[];
-
-function integrityIssue(severity,category,location,message){
-  return {severity,category,location,message};
-}
-function duplicateValues(items,getValue){
-  const groups=new Map();
-  items.forEach((item,index)=>{
-    const raw=getValue(item,index);
-    const key=norm(raw);
-    if(!key) return;
-    if(!groups.has(key)) groups.set(key,[]);
-    groups.get(key).push({item,index,raw});
-  });
-  return [...groups.values()].filter(group=>group.length>1);
-}
-function checkUrlLike(value){
-  if(!value) return true;
-  const text=plainTextFromHTML(value).trim();
-  if(!text) return true;
-  if(/^(https?:\/\/|mailto:|#|\.\/|\.\.\/)/i.test(text)){
-    try{ if(/^https?:\/\//i.test(text)) new URL(text); return true; }catch(e){ return false; }
-  }
-  return true; // les fichiers locaux sont autorisés
-}
-function runDataIntegrityCheck(){
-  const out=[];
-  const add=(severity,category,location,message)=>out.push(integrityIssue(severity,category,location,message));
-
-  // Présence des trois sources
-  if(!PERIOD_DATA.length) add('error','Chronologie','Périodes','Aucune période chargée.');
-  if(!YEAR_DATA.length) add('error','Chronologie','Années','Aucune année chargée.');
-  if(!PEOPLE_DATA.length) add('error','Entourage','Classeur','Aucune personne chargée.');
-  if(!FILMS_DATA.length) add('error','Films','Classeur','Aucun film chargé.');
-
-  // Identifiants obligatoires et doublons
-  [[PERIOD_DATA,'Périodes','période'],[YEAR_DATA,'Années','année'],[PEOPLE_DATA,'Entourage','personne'],[FILMS_DATA,'Films','film']].forEach(([items,category,label])=>{
-    items.forEach((item,i)=>{ if(!String(item.id||'').trim()) add('error',category,`${label} ${i+1}`,`Identifiant manquant.`); });
-    duplicateValues(items,item=>item.id).forEach(group=>add('error',category,group.map(x=>x.raw||`ligne ${x.index+1}`).join(' / '),`Identifiant dupliqué (${group.length} occurrences).`));
-  });
-
-  // Doublons de noms/titres pouvant rendre les correspondances ambiguës
-  duplicateValues(PEOPLE_DATA,p=>p.name).forEach(group=>add('warning','Entourage',group.map(x=>x.item.id).join(' / '),`Nom canonique dupliqué : « ${group[0].raw} ».`));
-  duplicateValues(FILMS_DATA,f=>`${f.title}|${f.year}`).forEach(group=>add('warning','Films',group.map(x=>x.item.id).join(' / '),`Même titre et même année pour plusieurs fiches.`));
-
-  const periodIds=new Set(PERIOD_DATA.map(p=>norm(p.id)));
-  const yearIds=new Set(YEAR_DATA.map(y=>String(y.id).trim()));
-  YEAR_DATA.forEach(y=>{
-    if(y.periodLink && !periodIds.has(norm(y.periodLink))) add('error','Chronologie',`Année ${y.id}`,`Période inconnue : « ${y.periodLink} ».`);
-    if(!y.periodLink) add('warning','Chronologie',`Année ${y.id}`,`Aucun lien vers une période.`);
-    (y.video||[]).forEach(v=>{if(!checkUrlLike(v.url)) add('warning','Chronologie',`Année ${y.id}`,`Lien vidéo mal formé : ${v.url}`);});
-  });
-
-  // Liens films -> entourage et films -> chronologie
-  FILMS_DATA.forEach(f=>{
-    if(!f.title) add('error','Films',f.id||'fiche sans ID','Titre français manquant.');
-    if(!f.year) add('warning','Films',f.id||f.title,'Année manquante.');
-    [...(f.castIds||[]),...(f.crewIds||[])].forEach(ref=>{
-      if(ref && !personByReference(ref)) add('error','Films',`${f.title} (${f.year||'s.d.'})`,`Référence d’entourage introuvable : « ${ref} ».`);
-    });
-    (f.timelineYears||[]).forEach(year=>{
-      const clean=String(year).match(/(?:19|20)\d{2}/)?.[0] || String(year).trim();
-      if(clean && !yearIds.has(clean)) add('warning','Films',`${f.title} (${f.year||'s.d.'})`,`Année de frise absente : « ${year} ».`);
-    });
-    if(f.poster && /\/\/$/.test(f.poster)) add('warning','Films',`${f.title} (${f.year||'s.d.'})`,`Nom de fichier d’affiche manquant.`);
-  });
-
-  // Filmographies de l’entourage -> base Films
-  PEOPLE_DATA.forEach(person=>{
-    const resolved=resolvedPersonFilms(person.filmography||[]);
-    resolved.unresolved.forEach(entry=>add('warning','Entourage',person.name||person.id,`Œuvre non reconnue dans la base Films : « ${entry} ».`));
-    if(!person.name) add('error','Entourage',person.id||'fiche sans ID','Nom canonique manquant.');
-    if(person.image && /\/\/$/.test(person.image)) add('warning','Entourage',person.name||person.id,'Nom de fichier de portrait manquant.');
-  });
-
-  // Cohérence réciproque indicative : les IDs cités par un film devraient retrouver le film dans la filmographie de la personne.
-  FILMS_DATA.forEach(f=>{
-    [...new Set([...(f.castIds||[]),...(f.crewIds||[])])].forEach(ref=>{
-      const person=personByReference(ref); if(!person) return;
-      const linked=resolvedPersonFilms(person.filmography||[]).linked.some(x=>x.id===f.id);
-      if(!linked) add('info','Navigation croisée',`${f.title} ↔ ${person.name}`,`Le film cite cette personne, mais la filmographie de sa fiche ne contient pas ce film.`);
-    });
-  });
-
-  INTEGRITY_RESULTS=out;
-  renderIntegrityReport();
-  return out;
-}
-function renderIntegrityReport(){
-  const counts={error:0,warning:0,info:0};
-  INTEGRITY_RESULTS.forEach(x=>counts[x.severity]=(counts[x.severity]||0)+1);
-  const blocking=counts.error+counts.warning;
-  integritySummary.innerHTML=
-    `<span class="integrity-count ${blocking?'warning':'ok'}">${blocking?'À vérifier':'Cohérence validée'}</span>`+
-    `<span class="integrity-count error">${counts.error} erreur${counts.error>1?'s':''}</span>`+
-    `<span class="integrity-count warning">${counts.warning} avertissement${counts.warning>1?'s':''}</span>`+
-    `<span class="integrity-count">${counts.info} information${counts.info>1?'s':''}</span>`;
-  const order={error:0,warning:1,info:2};
-  const labels={error:'Erreur',warning:'Avert.',info:'Info'};
-  const sorted=[...INTEGRITY_RESULTS].sort((a,b)=>order[a.severity]-order[b.severity]||a.category.localeCompare(b.category,'fr')||a.location.localeCompare(b.location,'fr'));
-  integrityReport.innerHTML=sorted.length ? sorted.map(x=>
-    `<div class="integrity-item ${x.severity}"><span class="integrity-severity">${labels[x.severity]}</span><span class="integrity-location">${escapeHTML(x.category)} · ${escapeHTML(x.location)}</span><span class="integrity-message">${escapeHTML(x.message)}</span></div>`
-  ).join('') : '<p class="integrity-empty">Aucune incohérence détectée par les règles automatiques.</p>';
-}
-function exportIntegrityCSV(){
-  if(!INTEGRITY_RESULTS.length) runDataIntegrityCheck();
-  const quote=value=>'"'+String(value??'').replace(/"/g,'""')+'"';
-  const rows=[['Niveau','Catégorie','Emplacement','Message'],...INTEGRITY_RESULTS.map(x=>[x.severity,x.category,x.location,x.message])];
-  const csv='\uFEFF'+rows.map(row=>row.map(quote).join(';')).join('\r\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='RWF_controle_coherence.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function scheduleIntegrityCheck(){clearTimeout(scheduleIntegrityCheck.timer);scheduleIntegrityCheck.timer=setTimeout(runDataIntegrityCheck,80);}
-integrityRunButton.addEventListener('click',runDataIntegrityCheck);
-integrityExportButton.addEventListener('click',exportIntegrityCSV);
-
-(async function startV29(){
+(async function startV29_1(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
   await loadSharedWorkbook();
   await loadFilmsWorkbook();
   await loadPeopleWorkbook();
-  runDataIntegrityCheck();
   finishStartup();
 })();
 </script>
