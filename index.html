@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — V29.1 — Entourage V30 compatible</title>
+<title>Fassbinder et l’Allemagne — V29.2 — identifiants techniques masqués</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1884,7 +1884,7 @@ function resolveFilmImageSrc(value){
   return clean.toLocaleLowerCase('fr').startsWith('films_images/') ? encoded : 'Films_images/'+encoded;
 }
 function splitFilmValues(value){
-  return (value||'').toString().split(/[|\n]/).map(v=>v.trim()).filter(Boolean);
+  return (value||'').toString().split(/[;|\n]/).map(v=>v.trim()).filter(Boolean);
 }
 function classifyFilmHeader(headerRow){
   const c={id:null,title:null,original:null,year:null,type:null,duration:null,country:null,director:null,screenplay:null,cinematography:null,editing:null,music:null,production:null,cast:null,crew:null,castIds:null,crewIds:null,synopsis:null,excerpts:null,analysis:null,bibliography:null,poster:null,posterLegend:null,posterSource:null,timeline:null,keywords:null,sources:null,status:null};
@@ -1989,8 +1989,6 @@ function renderFilmCreditEntries(entries,ids){
     if(person && !seen.has(person.id)){
       seen.add(person.id);
       rendered.push(personCreditButton(person,person.name));
-    }else if(!person && id){
-      rendered.push(escapeHTML(id));
     }
   });
   return rendered;
@@ -2019,8 +2017,6 @@ function renderFilmCastSection(entries,ids){
     if(person && !seen.has(person.id)){
       seen.add(person.id);
       rows.push('<li><span class="film-cast-actor">'+personCreditButton(person,person.name)+'</span></li>');
-    }else if(!person && id){
-      rows.push('<li><span class="film-cast-actor">'+escapeHTML(id)+'</span></li>');
     }
   });
   if(!rows.length) return '';
@@ -2108,7 +2104,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
 
-(async function startV29_1(){
+(async function startV29_2(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
   await loadSharedWorkbook();
   await loadFilmsWorkbook();
