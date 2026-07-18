@@ -949,7 +949,10 @@ function renderRow(row){
     analysis.innerHTML='<h3>Analyse et réception critique</h3><p>'+row.reception+'</p>';
     bubbleWrap.appendChild(analysis);
   }
-  // Rend les personnes reconnues cliquables après la construction de la vue.
+  // Les IDs techniques de la Frise servent à ouvrir directement les fiches Films.
+  // Les identifiants eux-mêmes ne sont jamais affichés comme une piste documentaire.
+  linkifyFilms(cardsEl,row.filmIds||[]);
+  // Rend ensuite les personnes reconnues cliquables après la construction de la vue.
   linkifyPeople(document.querySelector('section'));
 }
 
@@ -1046,7 +1049,7 @@ function rerenderAll(){
 }
 
 function classifyHeader(headerRow){
-  let idCol=0, periodTitleCol=null, periodLinkCol=null, videoCol=null, excerptCol=null, excerptDescriptionCol=null, excerptPromptCol=null, periodQuestionCol=null, notionsCol=null, receptionCol=null, citationCol=null;
+  let idCol=0, periodTitleCol=null, periodLinkCol=null, filmIdsCol=null, videoCol=null, excerptCol=null, excerptDescriptionCol=null, excerptPromptCol=null, periodQuestionCol=null, notionsCol=null, receptionCol=null, citationCol=null;
   const imageCols=[], legendCols=[], sourceCols=[], tracks=[];
   const numberedIndex=(text)=>{ const match=text.match(/(?:^| )(\d+)$/); return match ? Number(match[1]) : 1; };
   for(let c=1;c<headerRow.length;c++){
@@ -1057,6 +1060,7 @@ function classifyHeader(headerRow){
     else if(nl.includes('question directrice') || nl.includes('problematique de la periode') || nl.includes('question de la periode') || ((nl.includes('question') || nl.includes('problematique')) && nl.includes('periode'))) periodQuestionCol=c;
     else if(nl.includes('consigne d analyse') || nl.includes('consigne analyse') || nl.includes('question sur l extrait') || ((nl.includes('consigne') || nl.includes('question')) && nl.includes('extrait'))) excerptPromptCol=c;
     else if(nl==='notion' || nl==='notions' || nl.includes('notion cle') || nl.includes('notions cles') || nl.includes('mots cles') || nl.includes('mots-clefs')) notionsCol=c;
+    else if((nl.includes('id film') || nl.includes('ids film')) && (nl.includes('oeuvre') || nl.includes('uvres'))) filmIdsCol=c;
     else if(nl.includes('periode')) periodLinkCol=c;
     else if(nl.includes('video')) videoCol=c;
     else if(nl.includes('description') && nl.includes('extrait')) excerptDescriptionCol=c;
@@ -1068,7 +1072,7 @@ function classifyHeader(headerRow){
     else if(nl.includes('source')) sourceCols.push({index:c,number:numberedIndex(nl)});
     else tracks.push({index:c,label});
   }
-  return {idCol,periodTitleCol,periodLinkCol,videoCol,excerptCol,excerptDescriptionCol,excerptPromptCol,periodQuestionCol,notionsCol,receptionCol,citationCol,imageCols,legendCols,sourceCols,tracks};
+  return {idCol,periodTitleCol,periodLinkCol,filmIdsCol,videoCol,excerptCol,excerptDescriptionCol,excerptPromptCol,periodQuestionCol,notionsCol,receptionCol,citationCol,imageCols,legendCols,sourceCols,tracks};
 }
 
 // Lit le texte simple d'une cellule, notamment pour les dates, chemins et en-têtes.
@@ -1183,9 +1187,10 @@ function parseVideoCell(ws,r,c,cellText){
 function parseSheetRows(ws, headerMatch){
   const rows=sheetToRows(ws);
   if(rows.length===0) return null;
+  const acceptedHeaders=(Array.isArray(headerMatch)?headerMatch:[headerMatch]).map(headerNorm);
   let headerRowIdx=-1;
   for(let r=0;r<rows.length;r++){
-    if(norm(rows[r][0])===headerMatch){ headerRowIdx=r; break; }
+    if(acceptedHeaders.includes(headerNorm(rows[r][0]))){ headerRowIdx=r; break; }
   }
   if(headerRowIdx===-1) return null;
   const headerRow=rows[headerRowIdx];
@@ -1228,6 +1233,7 @@ function parseSheetRows(ws, headerMatch){
       excerptPrompt: cls.excerptPromptCol!=null ? richCell(cls.excerptPromptCol) : '',
       periodQuestion: cls.periodQuestionCol!=null ? richCell(cls.periodQuestionCol) : '',
       notions: cls.notionsCol!=null ? getCellText(ws,physicalRow,colOffset+cls.notionsCol).trim() : '',
+      filmIds: cls.filmIdsCol!=null ? (row[cls.filmIdsCol]||'').toString().split(/[;|\n]/).map(id=>id.trim()).filter(Boolean) : [],
       trackLabels: cls.tracks.map(t=>t.label),
       values: cls.tracks.map(t=>richCell(t.index)),
     });
@@ -1236,8 +1242,8 @@ function parseSheetRows(ws, headerMatch){
 }
 
 const WORKBOOK_FILENAME = 'RWF_Frise.xlsx';
-const LOCAL_CACHE_KEY = 'RWF_Frise_workbook_v14';
-const OBSOLETE_CACHE_KEYS = ['RWF_Frise_workbook_v1','RWF_Frise_workbook_v2','RWF_Frise_workbook_v3','RWF_Frise_workbook_v9'];
+const LOCAL_CACHE_KEY = 'RWF_Frise_workbook_v15_ids_films';
+const OBSOLETE_CACHE_KEYS = ['RWF_Frise_workbook_v1','RWF_Frise_workbook_v2','RWF_Frise_workbook_v3','RWF_Frise_workbook_v9','RWF_Frise_workbook_v14'];
 
 function arrayBufferToBase64(buffer){
   const bytes=new Uint8Array(buffer);
@@ -1269,8 +1275,8 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   let periods=null, years=null;
   for(const name of wb.SheetNames){
     const ws=wb.Sheets[name];
-    if(!periods){ const p=parseSheetRows(ws,'dates'); if(p) periods=p; }
-    if(!years){ const y=parseSheetRows(ws,'annee'); if(y) years=y; }
+    if(!periods){ const p=parseSheetRows(ws,['dates','id periode']); if(p) periods=p; }
+    if(!years){ const y=parseSheetRows(ws,['annee']); if(y) years=y; }
   }
   if(!periods) throw new Error("Aucune feuille avec une ligne d'en-tête « Dates » trouvée.");
   PERIOD_DATA=periods;
@@ -1282,6 +1288,7 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   if(periods.some(r=>(r.periodQuestion||'').trim()) || YEAR_DATA.some(r=>(r.periodQuestion||'').trim())) detected.push('questions directrices');
   if(YEAR_DATA.some(r=>(r.excerptPrompt||'').trim())) detected.push('consignes liées aux extraits');
   if(periods.some(r=>(r.notions||'').trim()) || YEAR_DATA.some(r=>(r.notions||'').trim())) detected.push('notions');
+  if(periods.some(r=>(r.filmIds||[]).length) || YEAR_DATA.some(r=>(r.filmIds||[]).length)) detected.push('liens films par ID');
   statusEl.textContent=sourceLabel + (detected.length ? ' — détecté : '+detected.join(', ') : ' — aucune nouvelle colonne renseignée détectée');
   statusEl.className='status ok';
   rebuildPeopleOccurrences();
@@ -1584,6 +1591,57 @@ function rebuildPeopleAliasMap(){
   PEOPLE_ALIAS_MAP.sort((a,b)=>b.alias.length-a.alias.length);
 }
 function regexEscape(value){ return value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+function filmByTimelineId(reference){
+  const key=(reference||'').toString().trim();
+  if(!key) return null;
+  return FILMS_DATA.find(film=>film.id===key) || FILMS_DATA.find(film=>norm(film.id)===norm(key)) || null;
+}
+
+// Rend cliquables uniquement les films explicitement reliés par les IDs de la Frise.
+// Les titres français et originaux servent de libellés visibles ; les IDs restent techniques.
+function linkifyFilms(root,filmIds){
+  if(!root || !FILMS_DATA.length || !(filmIds||[]).length) return;
+  const films=[], seen=new Set();
+  (filmIds||[]).forEach(id=>{
+    const film=filmByTimelineId(id);
+    if(film && !seen.has(film.id)){seen.add(film.id);films.push(film);}
+  });
+  const aliases=[];
+  films.forEach(film=>{
+    [film.title,film.original].filter(Boolean).forEach(label=>aliases.push({label,film}));
+  });
+  aliases.sort((a,b)=>b.label.length-a.label.length);
+  if(!aliases.length) return;
+  const lookup=new Map(aliases.map(item=>[item.label.toLocaleLowerCase('fr'),item.film]));
+  const alternatives=aliases.map(item=>regexEscape(item.label)).join('|');
+  const re=new RegExp('(^|[^\\p{L}\\p{N}])('+alternatives+')(?=$|[^\\p{L}\\p{N}])','giu');
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){
+    const parent=node.parentElement;
+    if(!parent || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+    if(parent.closest('button,a,script,style')) return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT;
+  }});
+  const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    const text=node.nodeValue; re.lastIndex=0;
+    let match,last=0,found=false; const frag=document.createDocumentFragment();
+    while((match=re.exec(text))){
+      found=true;
+      const prefix=match[1]||'', matchedTitle=match[2], start=match.index;
+      frag.appendChild(document.createTextNode(text.slice(last,start)+prefix));
+      const film=lookup.get(matchedTitle.toLocaleLowerCase('fr'));
+      if(film){
+        const btn=document.createElement('button');
+        btn.type='button'; btn.className='person-link timeline-film-link'; btn.textContent=matchedTitle;
+        btn.dataset.filmId=film.id;
+        frag.appendChild(btn);
+      }else frag.appendChild(document.createTextNode(matchedTitle));
+      last=start+prefix.length+matchedTitle.length;
+    }
+    if(found){frag.appendChild(document.createTextNode(text.slice(last)));node.replaceWith(frag);}
+  });
+}
 
 function linkifyPeople(root){
   if(!root || !PEOPLE_ALIAS_MAP.length) return;
@@ -2111,7 +2169,17 @@ function openFilm(filmId,origin=null){
 }
 function closeFilm(){filmDrawer.classList.remove('open');filmOverlay.classList.remove('open');filmDrawer.setAttribute('aria-hidden','true');filmOverlay.setAttribute('aria-hidden','true');document.body.style.overflow='';activeFilmId=null;}
 function cacheFilmsWorkbook(buffer){try{localStorage.setItem(FILMS_CACHE_KEY,arrayBufferToBase64(buffer));}catch(err){console.warn('Cache des films impossible.',err);}}
-function applyFilmsWorkbook(buffer,label,save=false){FILMS_DATA=parseFilmsWorkbook(buffer);if(save)cacheFilmsWorkbook(buffer);filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');filmsStatusEl.className='status ok';}
+function applyFilmsWorkbook(buffer,label,save=false){
+  FILMS_DATA=parseFilmsWorkbook(buffer);
+  if(save) cacheFilmsWorkbook(buffer);
+  filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');
+  filmsStatusEl.className='status ok';
+  // La chronologie est chargée avant les Films : on la réaffiche pour activer les liens ID.
+  if(PERIOD_DATA.length){
+    if(mode==='period' && PERIOD_DATA[current]) renderRow(PERIOD_DATA[current]);
+    else if(mode==='year' && yearList[yearIndex]) renderRow(yearList[yearIndex]);
+  }
+}
 async function loadFilmsWorkbook(){
   setStartupProgress(93,'Chargement des films…','RWF_Films.xlsx');
   if(location.protocol==='http:'||location.protocol==='https:'){
