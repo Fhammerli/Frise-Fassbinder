@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — V25 — films et entourage liés</title>
+<title>Fassbinder et l’Allemagne — V26 — films et entourage liés</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -611,7 +611,7 @@ function finishStartup(){
   else setTimeout(reveal,320);
 }
 const PEOPLE_WORKBOOK_FILENAME = 'RWF_Entourage.xlsx';
-const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v7';
+const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v8_entourage6';
 let PEOPLE_DATA = [];
 let PEOPLE_ALIAS_MAP = [];
 const FILMS_WORKBOOK_FILENAME='RWF_Films.xlsx';
@@ -619,7 +619,14 @@ const FILMS_CACHE_KEY='RWF_Films_workbook_v1';
 let FILMS_DATA=[];
 
 
-function norm(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+function norm(s){
+  return (s||'').toString()
+    .replace(/œ/g,'oe').replace(/Œ/g,'OE')
+    .replace(/æ/g,'ae').replace(/Æ/g,'AE')
+    .replace(/ß/g,'ss')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .trim().toLowerCase();
+}
 function headerNorm(s){ return norm(s).replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim(); }
 function parseWeight(str){ const n=(str.match(/\d{3,4}/g)||[]).map(Number); return n.length>=2 ? Math.max(1,n[1]-n[0]) : 1; }
 
@@ -1363,7 +1370,7 @@ function classifyPeopleHeader(headerRow){
     else if(h.includes('vie privee') || h.includes('lien avec fassbinder') || h.includes('relation avec fassbinder')) cols.relation=c;
     else if(h.includes('role dans') && h.includes('fassbinder')) cols.universeRole=c;
     else if(h.includes('biographie') || h==='bio' || h.includes('presentation')) cols.bio=c;
-    else if(h.includes('filmographie') || h.includes('films avec') || h.includes('oeuvres de fassbinder') || h==='oeuvres') cols.filmography=c;
+    else if(h.includes('filmographie') || h.includes('films avec') || h.includes('oeuvres de fassbinder') || h.includes('uvres de fassbinder') || h==='oeuvres' || h==='uvres') cols.filmography=c;
     else if(h.includes('image') || h.includes('photo') || h.includes('portrait')) cols.image=c;
     else if(h.includes('source')) cols.source=c;
     else if(h.includes('date') || h.includes('naissance') || h.includes('deces')) cols.dates=c;
@@ -1415,6 +1422,14 @@ function parsePeopleWorkbook(buffer){
       if(candidate.name!=null || candidate.displayName!=null){ headerIndex=r; cols=candidate; break; }
     }
     if(headerIndex<0) continue;
+    if(cols.filmography==null){
+      // Compatibilité avec les classeurs dont l’en-tête contient la ligature « Œ ».
+      const rawHeader=rows[headerIndex];
+      for(let c=0;c<rawHeader.length;c++){
+        const label=norm(rawHeader[c]).replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+        if(label.includes('oeuvres de fassbinder') || label.includes('uvres de fassbinder')){ cols.filmography=c; break; }
+      }
+    }
     const offset=rows[headerIndex]._colOffset;
     let currentPerson=null;
 
@@ -1648,7 +1663,7 @@ function filmographySection(films){
   const unresolvedItems=resolved.unresolved.map(f=>'<li><span class="person-film-unlinked">'+escapeHTML(f)+'</span></li>');
   const items=[...linkedItems,...unresolvedItems];
   if(!items.length) return '';
-  return '<section class="person-section"><h3>Œuvres de Fassbinder</h3><ul class="person-film-list">'+items.join('')+'</ul></section>';
+  return '<section class="person-section person-filmography-section" data-film-count="'+items.length+'"><h3>Œuvres de Fassbinder</h3><ul class="person-film-list">'+items.join('')+'</ul></section>';
 }
 
 function navigateToCitedYear(yearId){
@@ -1999,7 +2014,7 @@ filmIndexButton.addEventListener('click',openFilmIndex);filmClose.addEventListen
 document.addEventListener('click',e=>{const filmPersonButton=e.target.closest('[data-film-person-id]');if(filmPersonButton){closeFilm();openPerson(filmPersonButton.dataset.filmPersonId);return;}const personFilmButton=e.target.closest('[data-person-film-id]');if(personFilmButton){closePerson();openFilm(personFilmButton.dataset.personFilmId);return;}const filmButton=e.target.closest('[data-film-id]');if(filmButton){openFilm(filmButton.dataset.filmId);return;}const yearButton=e.target.closest('[data-film-year]');if(yearButton){closeFilm();navigateToCitedYear(yearButton.dataset.filmYear);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
 
-(async function startV25(){
+(async function startV26(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
   await loadSharedWorkbook();
   await loadFilmsWorkbook();
