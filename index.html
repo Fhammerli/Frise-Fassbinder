@@ -485,6 +485,13 @@
   .film-section{padding:18px 0;border-top:1px solid #E2E8EC;}
   .film-section h3{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:#E45A22;margin:0 0 9px;}
   .film-section p{margin:0;font-size:15px;line-height:1.68;color:#263541;white-space:pre-line;}
+  .film-cast-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+  .film-cast-list li{display:grid;grid-template-columns:minmax(170px,auto) 1fr;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid #EDF0F2;}
+  .film-cast-list li:last-child{border-bottom:0;}
+  .film-cast-actor{font-weight:600;color:#263541;}
+  .film-cast-role{color:#66737C;font-style:italic;}
+  .film-cast-role::before{content:"— ";}
+  @media(max-width:640px){.film-cast-list li{grid-template-columns:1fr;gap:2px}.film-cast-role::before{content:"Rôle : ";font-style:normal;font-weight:600;}}
   .film-list{margin:0;padding-left:19px;display:grid;gap:6px;font-size:14px;line-height:1.55;}
   .film-links{display:flex;flex-wrap:wrap;gap:7px;}
   .film-year-link,.film-excerpt-link{border:1px solid #CBD6DE;background:#F5F8FA;color:#315D8A;border-radius:999px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;cursor:pointer;text-decoration:none;}
@@ -1900,7 +1907,7 @@ function parseFilmsWorkbook(buffer){
         id:plain(cols.normalizedId)||plain(cols.id)||('film-'+filmSlug(title)+'-'+r), title, original:plain(cols.original), year,
         type:plain(cols.type), duration:plain(cols.duration), country:plain(cols.country), director:plain(cols.director),
         screenplay:rich(cols.screenplay), cinematography:rich(cols.cinematography), editing:rich(cols.editing), music:rich(cols.music), production:rich(cols.production),
-        cast:splitFilmValues(rich(cols.cast)), crew:splitFilmValues(rich(cols.crew)), castIds:splitFilmValues(plain(cols.castIds)), crewIds:splitFilmValues(plain(cols.crewIds)), synopsis:rich(cols.synopsis),
+        cast:splitFilmValues(plain(cols.cast)), crew:splitFilmValues(plain(cols.crew)), castIds:splitFilmValues(plain(cols.castIds)), crewIds:splitFilmValues(plain(cols.crewIds)), synopsis:rich(cols.synopsis),
         excerpts:splitFilmValues(plain(cols.excerpts)), analysis:rich(cols.analysis), bibliography:splitFilmValues(rich(cols.bibliography)),
         poster:resolveFilmImageSrc(plain(cols.poster)), posterLegend:plain(cols.posterLegend), posterSource:plain(cols.posterSource),
         timelineYears:splitFilmValues(plain(cols.timeline)), keywords:splitFilmValues(plain(cols.keywords)), sources:splitFilmValues(plain(cols.sources)), status:plain(cols.status)
@@ -1952,6 +1959,37 @@ function renderFilmCreditEntries(entries,ids){
   return rendered;
 }
 
+
+function splitCastCredit(text){
+  const clean=plainTextFromHTML(text||'').replace(/\s+/g,' ').trim();
+  if(!clean) return {name:'',role:''};
+  const match=clean.match(/^(.+?)\s*[:：]\s*(.+)$/);
+  return match ? {name:match[1].trim(),role:match[2].trim()} : {name:clean,role:''};
+}
+function renderFilmCastSection(entries,ids){
+  const rows=[];
+  const seen=new Set();
+  (entries||[]).forEach(entry=>{
+    const credit=splitCastCredit(entry);
+    if(!credit.name) return;
+    const person=personByReference(credit.name);
+    if(person) seen.add(person.id);
+    const actor=person ? personCreditButton(person,person.name) : escapeHTML(credit.name);
+    rows.push('<li><span class="film-cast-actor">'+actor+'</span>'+(credit.role?'<span class="film-cast-role">'+escapeHTML(credit.role)+'</span>':'')+'</li>');
+  });
+  (ids||[]).forEach(id=>{
+    const person=personByReference(id);
+    if(person && !seen.has(person.id)){
+      seen.add(person.id);
+      rows.push('<li><span class="film-cast-actor">'+personCreditButton(person,person.name)+'</span></li>');
+    }else if(!person && id){
+      rows.push('<li><span class="film-cast-actor">'+escapeHTML(id)+'</span></li>');
+    }
+  });
+  if(!rows.length) return '';
+  return '<section class="film-section"><h3>Distribution artistique</h3><ul class="film-cast-list">'+rows.join('')+'</ul></section>';
+}
+
 function filmSection(title,html){
   if(!html || !html.toString().trim()) return '';
   return '<section class="film-section"><h3>'+escapeHTML(title)+'</h3><p>'+html+'</p></section>';
@@ -1988,7 +2026,7 @@ function openFilm(filmId){
   const credits=[['Réalisation',f.director],['Scénario',f.screenplay],['Image',f.cinematography],['Montage',f.editing],['Musique',f.music],['Production',f.production]].filter(x=>x[1]).map(x=>'<li><strong>'+escapeHTML(x[0])+' :</strong> '+x[1]+'</li>');
   const chronology=(f.timelineYears||[]).length?'<section class="film-section"><h3>Liens avec la chronologie</h3><div class="film-links">'+f.timelineYears.map(y=>'<button class="film-year-link" data-film-year="'+escapeHTML(y)+'" type="button">'+escapeHTML(y)+'</button>').join('')+'</div></section>':'';
   const excerpts=(f.excerpts||[]).length?'<section class="film-section"><h3>Extraits</h3><div class="film-links">'+f.excerpts.map((x,i)=>'<a class="film-excerpt-link" href="'+escapeHTML(resolveExcerptSrc(x))+'" target="_blank" rel="noopener">Extrait '+(i+1)+'</a>').join('')+'</div></section>':'';
-  filmContent.innerHTML='<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+filmListSection('Distribution artistique',renderFilmCreditEntries(f.cast,f.castIds))+filmListSection('Autres membres de l’équipe',renderFilmCreditEntries(f.crew,f.crewIds))+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+chronology+filmListSection('Sources',f.sources);
+  filmContent.innerHTML='<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+renderFilmCastSection(f.cast,f.castIds)+filmListSection('Autres membres de l’équipe',renderFilmCreditEntries(f.crew,f.crewIds))+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+chronology+filmListSection('Sources',f.sources);
   const img=filmContent.querySelector('.film-poster img'); if(img) img.addEventListener('error',()=>img.closest('.film-poster').outerHTML='<div class="film-poster-missing">Image introuvable<br>'+escapeHTML(f.poster.replace(/^Films_images\//,''))+'</div>',{once:true});
   filmDrawer.classList.add('open');
   filmOverlay.classList.add('open');
