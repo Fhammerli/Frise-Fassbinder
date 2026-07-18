@@ -1591,6 +1591,7 @@ function rebuildPeopleAliasMap(){
   PEOPLE_ALIAS_MAP.sort((a,b)=>b.alias.length-a.alias.length);
 }
 function regexEscape(value){ return value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function filmTitleKey(value){ return (value||'').toLocaleLowerCase('fr').replace(/[’']/g,"'"); }
 
 function filmByTimelineId(reference){
   const key=(reference||'').toString().trim();
@@ -1613,8 +1614,8 @@ function linkifyFilms(root,filmIds){
   });
   aliases.sort((a,b)=>b.label.length-a.label.length);
   if(!aliases.length) return;
-  const lookup=new Map(aliases.map(item=>[item.label.toLocaleLowerCase('fr'),item.film]));
-  const alternatives=aliases.map(item=>regexEscape(item.label)).join('|');
+  const lookup=new Map(aliases.map(item=>[filmTitleKey(item.label),item.film]));
+  const alternatives=aliases.map(item=>regexEscape(item.label).replace(/[’']/g,"['’]")).join('|');
   const re=new RegExp('(^|[^\\p{L}\\p{N}])('+alternatives+')(?=$|[^\\p{L}\\p{N}])','giu');
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){
     const parent=node.parentElement;
@@ -1630,7 +1631,7 @@ function linkifyFilms(root,filmIds){
       found=true;
       const prefix=match[1]||'', matchedTitle=match[2], start=match.index;
       frag.appendChild(document.createTextNode(text.slice(last,start)+prefix));
-      const film=lookup.get(matchedTitle.toLocaleLowerCase('fr'));
+      const film=lookup.get(filmTitleKey(matchedTitle));
       if(film){
         const btn=document.createElement('button');
         btn.type='button'; btn.className='person-link timeline-film-link'; btn.textContent=matchedTitle;
