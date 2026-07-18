@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — V27 — films et entourage liés</title>
+<title>Fassbinder et l’Allemagne — V28 — navigation croisée complète</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -502,6 +502,14 @@
 
 
 .film-person-link{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}.film-person-link:hover{color:var(--ink)}
+
+  /* ---- V28 : navigation croisée complète ---- */
+  .cross-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 18px;padding:10px 12px;background:#F5F8FA;border:1px solid #D8E1E7;border-radius:4px;}
+  .cross-nav-label{font:600 10.5px 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:#74818B;}
+  .cross-nav button{border:1px solid #CBD6DE;background:#fff;color:#315D8A;border-radius:999px;padding:6px 10px;font:600 10.5px 'IBM Plex Mono',monospace;cursor:pointer;}
+  .cross-nav button:hover{background:#315D8A;color:#fff;border-color:#315D8A;}
+  .person-film-year-button{border:0;background:transparent;color:#74818B;font-family:'IBM Plex Mono',monospace;font-size:10.5px;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;text-decoration-color:#CBD6DE;text-underline-offset:3px;}
+  .person-film-year-button:hover{color:#315D8A;text-decoration-color:#315D8A;}
 </style>
 </head>
 <body class="is-loading">
@@ -755,6 +763,9 @@ const filmIndexButton=document.getElementById('filmIndexButton');
 const filmsFileInput=document.getElementById('filmsFileInput');
 const filmsStatusEl=document.getElementById('filmsStatus');
 const filmDrawer=document.getElementById('filmDrawer');
+let activePersonId=null;
+let activeFilmId=null;
+let crossNavigationOrigin=null;
 const filmOverlay=document.getElementById('filmOverlay');
 const filmClose=document.getElementById('filmClose');
 const filmContent=document.getElementById('filmContent');
@@ -1665,7 +1676,7 @@ function filmographySection(films){
   const resolved=resolvedPersonFilms(films);
   const linkedItems=resolved.linked.map(f=>
     '<li><button class="person-film-link" type="button" data-person-film-id="'+escapeHTML(f.id)+'">'+escapeHTML(f.title)+'</button>'+
-    (f.year?'<span class="person-film-year">('+escapeHTML(f.year)+')</span>':'')+'</li>'
+    (f.year?'<button class="person-film-year-button" type="button" data-person-film-year="'+escapeHTML(f.year)+'" title="Voir '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>':'')+'</li>'
   );
   const unresolvedItems=resolved.unresolved.map(f=>'<li><span class="person-film-unlinked">'+escapeHTML(f)+'</span></li>');
   const items=[...linkedItems,...unresolvedItems];
@@ -1733,14 +1744,20 @@ function openPeopleIndex(){
   setTimeout(()=>search?.focus(),30);
 }
 
-function openPerson(personId){
+function openPerson(personId,origin=null){
   const person=PEOPLE_DATA.find(p=>p.id===personId); if(!person) return;
+  activePersonId=personId;
+  if(origin) crossNavigationOrigin=origin;
   const meta=[person.role,person.stratum].filter(Boolean).join(' · ');
   const expectedImage=person.image||'';
   const photoHTML=expectedImage
     ? '<div class="person-photo"><img src="'+escapeHTML(expectedImage)+'" alt="Portrait de '+escapeHTML(person.name)+'" data-expected-src="'+escapeHTML(expectedImage)+'"></div>'
     : '<div class="person-photo-missing">Portrait non renseigné</div>';
+  const crossNav=(crossNavigationOrigin&&crossNavigationOrigin.type==='film')
+    ? '<nav class="cross-nav" aria-label="Navigation croisée"><span class="cross-nav-label">Depuis le film</span><button type="button" data-cross-back-film="'+escapeHTML(crossNavigationOrigin.id)+'">← Retour à '+escapeHTML(crossNavigationOrigin.label||'la fiche film')+'</button></nav>'
+    : '';
   personContent.innerHTML=
+    crossNav+
     '<div class="person-profile">'+
       photoHTML+
       '<div class="person-profile-main">'+
@@ -1776,6 +1793,7 @@ function closePerson(){
   personDrawer.classList.remove('open'); personOverlay.classList.remove('open');
   personDrawer.setAttribute('aria-hidden','true'); personOverlay.setAttribute('aria-hidden','true');
   document.body.style.overflow='';
+  activePersonId=null;
 }
 
 document.addEventListener('click',e=>{
@@ -2015,8 +2033,10 @@ function openFilmIndex(){
   const search=filmContent.querySelector('#filmIndexSearch'); search?.addEventListener('input',()=>renderFilmIndex(search.value));
   filmDrawer.classList.add('open');filmOverlay.classList.add('open');filmDrawer.setAttribute('aria-hidden','false');filmOverlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>search?.focus(),30);
 }
-function openFilm(filmId){
+function openFilm(filmId,origin=null){
   const f=FILMS_DATA.find(x=>x.id===filmId); if(!f) return;
+  activeFilmId=filmId;
+  if(origin) crossNavigationOrigin=origin;
   const poster=f.poster?'<div class="film-poster"><img src="'+escapeHTML(f.poster)+'" alt="Affiche de '+escapeHTML(f.title)+'"></div>':'<div class="film-poster-missing">Affiche non renseignée<br>Films_images/</div>';
   const metaParts=[f.type,f.duration?(f.duration+' min'):'',f.country].filter(Boolean);
   const yearMeta=f.year
@@ -2026,7 +2046,10 @@ function openFilm(filmId){
   const credits=[['Réalisation',f.director],['Scénario',f.screenplay],['Image',f.cinematography],['Montage',f.editing],['Musique',f.music],['Production',f.production]].filter(x=>x[1]).map(x=>'<li><strong>'+escapeHTML(x[0])+' :</strong> '+x[1]+'</li>');
   const chronology=(f.timelineYears||[]).length?'<section class="film-section"><h3>Liens avec la chronologie</h3><div class="film-links">'+f.timelineYears.map(y=>'<button class="film-year-link" data-film-year="'+escapeHTML(y)+'" type="button">'+escapeHTML(y)+'</button>').join('')+'</div></section>':'';
   const excerpts=(f.excerpts||[]).length?'<section class="film-section"><h3>Extraits</h3><div class="film-links">'+f.excerpts.map((x,i)=>'<a class="film-excerpt-link" href="'+escapeHTML(resolveExcerptSrc(x))+'" target="_blank" rel="noopener">Extrait '+(i+1)+'</a>').join('')+'</div></section>':'';
-  filmContent.innerHTML='<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+renderFilmCastSection(f.cast,f.castIds)+filmListSection('Autres membres de l’équipe',renderFilmCreditEntries(f.crew,f.crewIds))+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+chronology+filmListSection('Sources',f.sources);
+  const crossNav=(crossNavigationOrigin&&crossNavigationOrigin.type==='person')
+    ? '<nav class="cross-nav" aria-label="Navigation croisée"><span class="cross-nav-label">Depuis la personne</span><button type="button" data-cross-back-person="'+escapeHTML(crossNavigationOrigin.id)+'">← Retour à '+escapeHTML(crossNavigationOrigin.label||'la fiche personne')+'</button></nav>'
+    : '';
+  filmContent.innerHTML=crossNav+'<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+renderFilmCastSection(f.cast,f.castIds)+filmListSection('Autres membres de l’équipe',renderFilmCreditEntries(f.crew,f.crewIds))+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+chronology+filmListSection('Sources',f.sources);
   const img=filmContent.querySelector('.film-poster img'); if(img) img.addEventListener('error',()=>img.closest('.film-poster').outerHTML='<div class="film-poster-missing">Image introuvable<br>'+escapeHTML(f.poster.replace(/^Films_images\//,''))+'</div>',{once:true});
   filmDrawer.classList.add('open');
   filmOverlay.classList.add('open');
@@ -2035,7 +2058,7 @@ function openFilm(filmId){
   document.body.style.overflow='hidden';
   filmClose.focus();
 }
-function closeFilm(){filmDrawer.classList.remove('open');filmOverlay.classList.remove('open');filmDrawer.setAttribute('aria-hidden','true');filmOverlay.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function closeFilm(){filmDrawer.classList.remove('open');filmOverlay.classList.remove('open');filmDrawer.setAttribute('aria-hidden','true');filmOverlay.setAttribute('aria-hidden','true');document.body.style.overflow='';activeFilmId=null;}
 function cacheFilmsWorkbook(buffer){try{localStorage.setItem(FILMS_CACHE_KEY,arrayBufferToBase64(buffer));}catch(err){console.warn('Cache des films impossible.',err);}}
 function applyFilmsWorkbook(buffer,label,save=false){FILMS_DATA=parseFilmsWorkbook(buffer);if(save)cacheFilmsWorkbook(buffer);filmsStatusEl.textContent=label+' — '+FILMS_DATA.length+' œuvre'+(FILMS_DATA.length>1?'s':'')+' détectée'+(FILMS_DATA.length>1?'s':'');filmsStatusEl.className='status ok';}
 async function loadFilmsWorkbook(){
@@ -2049,10 +2072,25 @@ async function loadFilmsWorkbook(){
 }
 filmsFileInput.addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=evt=>{try{applyFilmsWorkbook(evt.target.result,'Tableau de films importé et mémorisé',true);}catch(err){filmsStatusEl.textContent='Erreur : '+err.message;filmsStatusEl.className='status err';}};reader.readAsArrayBuffer(file);});
 filmIndexButton.addEventListener('click',openFilmIndex);filmClose.addEventListener('click',closeFilm);filmOverlay.addEventListener('click',closeFilm);
-document.addEventListener('click',e=>{const filmPersonButton=e.target.closest('[data-film-person-id]');if(filmPersonButton){closeFilm();openPerson(filmPersonButton.dataset.filmPersonId);return;}const personFilmButton=e.target.closest('[data-person-film-id]');if(personFilmButton){closePerson();openFilm(personFilmButton.dataset.personFilmId);return;}const filmButton=e.target.closest('[data-film-id]');if(filmButton){openFilm(filmButton.dataset.filmId);return;}const yearButton=e.target.closest('[data-film-year]');if(yearButton){closeFilm();navigateToCitedYear(yearButton.dataset.filmYear);}});
+document.addEventListener('click',e=>{
+  const backFilm=e.target.closest('[data-cross-back-film]');
+  if(backFilm){const person=PEOPLE_DATA.find(p=>p.id===activePersonId);closePerson();crossNavigationOrigin=null;openFilm(backFilm.dataset.crossBackFilm,person?{type:'person',id:person.id,label:person.name}:null);return;}
+  const backPerson=e.target.closest('[data-cross-back-person]');
+  if(backPerson){const film=FILMS_DATA.find(f=>f.id===activeFilmId);closeFilm();crossNavigationOrigin=null;openPerson(backPerson.dataset.crossBackPerson,film?{type:'film',id:film.id,label:film.title}:null);return;}
+  const personYear=e.target.closest('[data-person-film-year]');
+  if(personYear){closePerson();crossNavigationOrigin=null;navigateToCitedYear(personYear.dataset.personFilmYear);return;}
+  const filmPersonButton=e.target.closest('[data-film-person-id]');
+  if(filmPersonButton){const film=FILMS_DATA.find(f=>f.id===activeFilmId);closeFilm();openPerson(filmPersonButton.dataset.filmPersonId,film?{type:'film',id:film.id,label:film.title}:null);return;}
+  const personFilmButton=e.target.closest('[data-person-film-id]');
+  if(personFilmButton){const person=PEOPLE_DATA.find(p=>p.id===activePersonId);closePerson();openFilm(personFilmButton.dataset.personFilmId,person?{type:'person',id:person.id,label:person.name}:null);return;}
+  const filmButton=e.target.closest('[data-film-id]');
+  if(filmButton){crossNavigationOrigin=null;openFilm(filmButton.dataset.filmId);return;}
+  const yearButton=e.target.closest('[data-film-year]');
+  if(yearButton){closeFilm();crossNavigationOrigin=null;navigateToCitedYear(yearButton.dataset.filmYear);}
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
 
-(async function startV26(){
+(async function startV28(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
   await loadSharedWorkbook();
   await loadFilmsWorkbook();
