@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — V29.2 — identifiants techniques masqués</title>
+<title>Fassbinder et l’Allemagne — V28 — navigation croisée complète</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -626,11 +626,11 @@ function finishStartup(){
   else setTimeout(reveal,320);
 }
 const PEOPLE_WORKBOOK_FILENAME = 'RWF_Entourage.xlsx';
-const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v9_v30';
+const PEOPLE_CACHE_KEY = 'RWF_Entourage_workbook_v8_entourage6';
 let PEOPLE_DATA = [];
 let PEOPLE_ALIAS_MAP = [];
 const FILMS_WORKBOOK_FILENAME='RWF_Films.xlsx';
-const FILMS_CACHE_KEY='RWF_Films_workbook_v1';
+const FILMS_CACHE_KEY='RWF_Films_workbook_v2';
 let FILMS_DATA=[];
 
 
@@ -1368,19 +1368,19 @@ function classifyPeopleHeader(headerRow){
   const cols={
     name:null, firstName:null, sortName:null, displayName:null, nickname:null, internalId:null, normalizedId:null,
     aliases:null, role:null, stratum:null, collaborationType:null,
-    bio:null, relation:null, filmography:null, filmIds:null, unresolvedWorks:null, universeRole:null,
+    bio:null, relation:null, filmography:null, universeRole:null,
     image:null, source:null, dates:null, link:null
   };
   headerRow.forEach((value,c)=>{
     const h=headerNorm(value);
     if(!h) return;
-    if(h==='id canonique' || h.includes('id normalise') || h.includes('identifiant normalise')) cols.normalizedId=c;
-    else if(h==='id' || h==='ancien id' || h==='identifiant' || h==='identifiant personne' || h==='cle') cols.internalId=c;
+    if(h.includes('id normalise') || h.includes('identifiant normalise')) cols.normalizedId=c;
+    else if(h==='id' || h==='identifiant' || h==='identifiant personne' || h==='cle') cols.internalId=c;
     else if(h==='nom tri' || h==='nom de tri' || h==='nom classement' || h==='nom pour le tri') cols.sortName=c;
-    else if(h==='nom canonique' || h==='nom affichage' || h==='nom d affichage' || h==='nom complet affiche' || h==='nom usuel') cols.displayName=c;
-    else if(h==='prenom' || h==='prenom source' || h==='prenoms' || h==='first name') cols.firstName=c;
+    else if(h==='nom affichage' || h==='nom d affichage' || h==='nom complet affiche' || h==='nom usuel') cols.displayName=c;
+    else if(h==='prenom' || h==='prenoms' || h==='first name') cols.firstName=c;
     else if(h==='surnom' || h==='surnoms' || h==='nickname') cols.nickname=c;
-    else if(h==='nom' || h==='nom source' || h==='nom de famille' || h==='patronyme' || h==='nom complet' || h==='personne' || h==='name') cols.name=c;
+    else if(h==='nom' || h==='nom de famille' || h==='patronyme' || h==='nom complet' || h==='personne' || h==='name') cols.name=c;
     else if(h.includes('variante') || h.includes('alias') || h.includes('autre nom')) cols.aliases=c;
     else if(h==='strate' || h.includes('cercle') || h.includes('groupe')) cols.stratum=c;
     else if(h.includes('fonction dominante') || h==='fonction' || h.includes('profession') || h.includes('activite')) cols.role=c;
@@ -1388,8 +1388,6 @@ function classifyPeopleHeader(headerRow){
     else if(h.includes('vie privee') || h.includes('lien avec fassbinder') || h.includes('relation avec fassbinder')) cols.relation=c;
     else if(h.includes('role dans') && h.includes('fassbinder')) cols.universeRole=c;
     else if(h.includes('biographie') || h==='bio' || h.includes('presentation')) cols.bio=c;
-    else if(h.includes('ids films') && (h.includes('oeuvres de fassbinder') || h.includes('uvres de fassbinder'))) cols.filmIds=c;
-    else if(h.includes('oeuvres non rapprochees') || h.includes('uvres non rapprochees')) cols.unresolvedWorks=c;
     else if(h.includes('filmographie') || h.includes('films avec') || h.includes('oeuvres de fassbinder') || h.includes('uvres de fassbinder') || h==='oeuvres' || h==='uvres') cols.filmography=c;
     else if(h.includes('image') || h.includes('photo') || h.includes('portrait')) cols.image=c;
     else if(h.includes('source')) cols.source=c;
@@ -1484,7 +1482,7 @@ function parsePeopleWorkbook(buffer){
           nicknames,
           aliases:[displayName,rawName,legacyCommaName,sortName,legacyId,explicitId,...explicitAliases].filter(Boolean),
           roleValues:[], stratumValues:[], collaborationValues:[], bioValues:[],
-          relationValues:[], filmographyValues:[], filmIdValues:[], unresolvedWorkValues:[], universeRoleValues:[],
+          relationValues:[], filmographyValues:[], universeRoleValues:[],
           image:'', sourceValues:[], datesValues:[], link:''
         };
         people.push(currentPerson);
@@ -1500,8 +1498,6 @@ function parsePeopleWorkbook(buffer){
       add(currentPerson.bioValues,rich(cols.bio));
       add(currentPerson.relationValues,rich(cols.relation));
       add(currentPerson.filmographyValues,plain(cols.filmography));
-      add(currentPerson.filmIdValues,plain(cols.filmIds));
-      add(currentPerson.unresolvedWorkValues,plain(cols.unresolvedWorks));
       add(currentPerson.universeRoleValues,rich(cols.universeRole));
       add(currentPerson.sourceValues,plain(cols.source));
       add(currentPerson.datesValues,plain(cols.dates));
@@ -1530,8 +1526,6 @@ function parsePeopleWorkbook(buffer){
     bio:joinRichValues(person.bioValues),
     relation:joinRichValues(person.relationValues),
     filmography:uniqueNonEmpty(person.filmographyValues),
-    filmIds:uniqueNonEmpty(person.filmIdValues.flatMap(splitPeopleValues)),
-    unresolvedWorks:uniqueNonEmpty(person.unresolvedWorkValues.flatMap(splitPeopleValues)),
     universeRole:joinRichValues(person.universeRoleValues),
     image:person.image,
     source:uniqueNonEmpty(person.sourceValues).join(' · '),
@@ -1658,41 +1652,28 @@ function filmsDetectedInEntry(entry){
   return detected.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
 }
 
-function resolvedPersonFilms(films,filmIds=[],explicitUnresolved=[]){
+function resolvedPersonFilms(films){
   const linked=[], unresolved=[];
   const seen=new Set();
-  const exactIds=uniqueNonEmpty(filmIds||[]);
-  if(exactIds.length){
-    exactIds.forEach((id,index)=>{
-      const film=FILMS_DATA.find(candidate=>candidate.id===id);
-      if(film && !seen.has(film.id)){ seen.add(film.id); linked.push(film); }
-      else if(!film){
-        const label=plainTextFromHTML((films||[])[index]||'');
-        if(label) unresolved.push(label);
-      }
-    });
-  }else{
-    (films||[]).forEach(entry=>{
-      const matches=filmsDetectedInEntry(entry);
-      if(matches.length){
-        matches.forEach(film=>{
-          if(seen.has(film.id)) return;
-          seen.add(film.id); linked.push(film);
-        });
-      }else{
-        const label=plainTextFromHTML(entry);
-        if(label) unresolved.push(label);
-      }
-    });
-  }
-  (explicitUnresolved||[]).forEach(entry=>{ const label=plainTextFromHTML(entry); if(label) unresolved.push(label); });
+  (films||[]).forEach(entry=>{
+    const matches=filmsDetectedInEntry(entry);
+    if(matches.length){
+      matches.forEach(film=>{
+        if(seen.has(film.id)) return;
+        seen.add(film.id); linked.push(film);
+      });
+    }else{
+      const text=plainTextFromHTML(entry);
+      if(text) unresolved.push(text);
+    }
+  });
   linked.sort((a,b)=>(Number(a.year)||9999)-(Number(b.year)||9999)||a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
   return {linked,unresolved:uniqueNonEmpty(unresolved)};
 }
 
-function filmographySection(films,filmIds=[],explicitUnresolved=[]){
-  if((!films || !films.length) && (!filmIds || !filmIds.length) && (!explicitUnresolved || !explicitUnresolved.length)) return '';
-  const resolved=resolvedPersonFilms(films,filmIds,explicitUnresolved);
+function filmographySection(films){
+  if(!films || !films.length) return '';
+  const resolved=resolvedPersonFilms(films);
   const linkedItems=resolved.linked.map(f=>
     '<li><button class="person-film-link" type="button" data-person-film-id="'+escapeHTML(f.id)+'">'+escapeHTML(f.title)+'</button>'+
     (f.year?'<button class="person-film-year-button" type="button" data-person-film-year="'+escapeHTML(f.year)+'" title="Voir '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>':'')+'</li>'
@@ -1790,7 +1771,7 @@ function openPerson(personId,origin=null){
     personSection('Biographie',person.bio)+
     personSection('Vie privée / lien avec Fassbinder',person.relation)+
     personSection('Rôle dans l’univers Fassbinder',person.universeRole)+
-    filmographySection(person.filmography,person.filmIds,person.unresolvedWorks)+
+    filmographySection(person.filmography)+
     (person.source?personSection('Source',escapeHTML(person.source)):'')+
     (person.link?'<section class="person-section"><a class="person-external" href="'+escapeHTML(person.link)+'" target="_blank" rel="noopener">Ouvrir la notice externe</a></section>':'');
   const portrait=personContent.querySelector('.person-photo img');
@@ -1884,10 +1865,13 @@ function resolveFilmImageSrc(value){
   return clean.toLocaleLowerCase('fr').startsWith('films_images/') ? encoded : 'Films_images/'+encoded;
 }
 function splitFilmValues(value){
+  return (value||'').toString().split(/[|\n]/).map(v=>v.trim()).filter(Boolean);
+}
+function splitFilmIds(value){
   return (value||'').toString().split(/[;|\n]/).map(v=>v.trim()).filter(Boolean);
 }
 function classifyFilmHeader(headerRow){
-  const c={id:null,title:null,original:null,year:null,type:null,duration:null,country:null,director:null,screenplay:null,cinematography:null,editing:null,music:null,production:null,cast:null,crew:null,castIds:null,crewIds:null,synopsis:null,excerpts:null,analysis:null,bibliography:null,poster:null,posterLegend:null,posterSource:null,timeline:null,keywords:null,sources:null,status:null};
+  const c={id:null,title:null,original:null,year:null,type:null,duration:null,country:null,director:null,screenplay:null,cinematography:null,editing:null,decor:null,music:null,production:null,cast:null,crew:null,castIds:null,crewIds:null,synopsis:null,excerpts:null,analysis:null,bibliography:null,poster:null,posterLegend:null,posterSource:null,timeline:null,keywords:null,sources:null,status:null};
   headerRow.forEach((value,i)=>{
     const h=headerNorm(value); if(!h) return;
     if(h.includes('id normalise') || h.includes('identifiant normalise')) c.normalizedId=i;
@@ -1902,6 +1886,7 @@ function classifyFilmHeader(headerRow){
     else if(h.includes('scenario')) c.screenplay=i;
     else if(h==='image'||h.includes('photographie')||h.includes('direction de la photographie')) c.cinematography=i;
     else if(h.includes('montage')) c.editing=i;
+    else if(h.includes('decor')) c.decor=i;
     else if(h.includes('musique')) c.music=i;
     else if(h.includes('production')) c.production=i;
     else if(h.includes('ids entourage') && h.includes('distribution artistique')) c.castIds=i;
@@ -1943,8 +1928,8 @@ function parseFilmsWorkbook(buffer){
       films.push({
         id:plain(cols.normalizedId)||plain(cols.id)||('film-'+filmSlug(title)+'-'+r), title, original:plain(cols.original), year,
         type:plain(cols.type), duration:plain(cols.duration), country:plain(cols.country), director:plain(cols.director),
-        screenplay:rich(cols.screenplay), cinematography:rich(cols.cinematography), editing:rich(cols.editing), music:rich(cols.music), production:rich(cols.production),
-        cast:splitFilmValues(plain(cols.cast)), crew:splitFilmValues(plain(cols.crew)), castIds:splitFilmValues(plain(cols.castIds)), crewIds:splitFilmValues(plain(cols.crewIds)), synopsis:rich(cols.synopsis),
+        screenplay:rich(cols.screenplay), cinematography:rich(cols.cinematography), editing:rich(cols.editing), decor:rich(cols.decor), music:rich(cols.music), production:rich(cols.production),
+        cast:splitFilmValues(plain(cols.cast)), crew:splitFilmValues(plain(cols.crew)), castIds:splitFilmIds(plain(cols.castIds)), crewIds:splitFilmIds(plain(cols.crewIds)), synopsis:rich(cols.synopsis),
         excerpts:splitFilmValues(plain(cols.excerpts)), analysis:rich(cols.analysis), bibliography:splitFilmValues(rich(cols.bibliography)),
         poster:resolveFilmImageSrc(plain(cols.poster)), posterLegend:plain(cols.posterLegend), posterSource:plain(cols.posterSource),
         timelineYears:splitFilmValues(plain(cols.timeline)), keywords:splitFilmValues(plain(cols.keywords)), sources:splitFilmValues(plain(cols.sources)), status:plain(cols.status)
@@ -1970,26 +1955,56 @@ function personCreditButton(person,label){
   return '<button class="film-person-link" type="button" data-film-person-id="'+escapeHTML(person.id)+'">'+escapeHTML(visible)+'</button>';
 }
 
+// Transforme dans un crédit affiché les noms correspondant aux IDs techniques
+// en boutons de navigation, sans jamais afficher les identifiants eux-mêmes.
+function linkKnownPeopleInHTML(html,ids){
+  if(!html || !(ids||[]).length) return html||'';
+  const people=[];
+  const seen=new Set();
+  (ids||[]).forEach(id=>{
+    const person=personByReference(id);
+    if(person && !seen.has(person.id)){seen.add(person.id);people.push(person);}
+  });
+  if(!people.length) return html;
+  const template=document.createElement('template');
+  template.innerHTML=html;
+  const walker=document.createTreeWalker(template.content,NodeFilter.SHOW_TEXT);
+  const nodes=[];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    let remaining=node.nodeValue||'';
+    const fragment=document.createDocumentFragment();
+    let changed=false;
+    while(remaining){
+      const lower=remaining.toLocaleLowerCase('fr');
+      let match=null;
+      people.forEach(person=>{
+        const index=lower.indexOf(person.name.toLocaleLowerCase('fr'));
+        if(index<0) return;
+        if(!match || index<match.index || (index===match.index && person.name.length>match.person.name.length)) match={index,person};
+      });
+      if(!match){fragment.append(document.createTextNode(remaining));break;}
+      changed=true;
+      if(match.index) fragment.append(document.createTextNode(remaining.slice(0,match.index)));
+      const button=document.createElement('button');
+      button.className='film-person-link';
+      button.type='button';
+      button.dataset.filmPersonId=match.person.id;
+      button.textContent=match.person.name;
+      fragment.append(button);
+      remaining=remaining.slice(match.index+match.person.name.length);
+    }
+    if(changed) node.replaceWith(fragment);
+  });
+  return template.innerHTML;
+}
+
 function renderFilmCreditEntries(entries,ids){
   const rendered=[];
-  const seen=new Set();
   (entries||[]).forEach(entry=>{
     const text=plainTextFromHTML(entry);
     if(!text) return;
-    const namePart=text.split(/\s*:\s*/)[0].trim();
-    const person=personByReference(namePart);
-    if(person){
-      seen.add(person.id);
-      const suffix=text.slice(namePart.length);
-      rendered.push(personCreditButton(person,person.name)+(suffix?escapeHTML(suffix):''));
-    }else rendered.push(escapeHTML(text));
-  });
-  (ids||[]).forEach(id=>{
-    const person=personByReference(id);
-    if(person && !seen.has(person.id)){
-      seen.add(person.id);
-      rendered.push(personCreditButton(person,person.name));
-    }
+    rendered.push(linkKnownPeopleInHTML(escapeHTML(text),ids));
   });
   return rendered;
 }
@@ -2058,7 +2073,7 @@ function openFilm(filmId,origin=null){
     ? '<button class="film-year-link film-main-year" data-film-year="'+escapeHTML(f.year)+'" type="button" title="Revenir à '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>'
     : '';
   const metaHTML=[yearMeta,metaParts.length?'<span>'+escapeHTML(metaParts.join(' · '))+'</span>':''].filter(Boolean).join('<span aria-hidden="true"> · </span>');
-  const credits=[['Réalisation',f.director],['Scénario',f.screenplay],['Image',f.cinematography],['Montage',f.editing],['Musique',f.music],['Production',f.production]].filter(x=>x[1]).map(x=>'<li><strong>'+escapeHTML(x[0])+' :</strong> '+x[1]+'</li>');
+  const credits=[['Réalisation',escapeHTML(f.director)],['Scénario',f.screenplay],['Image',f.cinematography],['Montage',f.editing],['Décors',f.decor],['Musique',f.music],['Production',f.production]].filter(x=>x[1]).map(x=>'<li><strong>'+escapeHTML(x[0])+' :</strong> '+linkKnownPeopleInHTML(x[1],f.crewIds)+'</li>');
   const excerpts=(f.excerpts||[]).length?'<section class="film-section"><h3>Extraits</h3><div class="film-links">'+f.excerpts.map((x,i)=>'<a class="film-excerpt-link" href="'+escapeHTML(resolveExcerptSrc(x))+'" target="_blank" rel="noopener">Extrait '+(i+1)+'</a>').join('')+'</div></section>':'';
   const crossNav=(crossNavigationOrigin&&crossNavigationOrigin.type==='person')
     ? '<nav class="cross-nav" aria-label="Navigation croisée"><span class="cross-nav-label">Depuis la personne</span><button type="button" data-cross-back-person="'+escapeHTML(crossNavigationOrigin.id)+'">← Retour à '+escapeHTML(crossNavigationOrigin.label||'la fiche personne')+'</button></nav>'
@@ -2104,7 +2119,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
 
-(async function startV29_2(){
+(async function startV28(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
   await loadSharedWorkbook();
   await loadFilmsWorkbook();
