@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — Version 2.3</title>
+<title>Fassbinder et l’Allemagne — Version 2.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -640,7 +640,7 @@
   </details>
   <footer class="site-footer">
     <button class="sources-button" id="sourcesButton" type="button">Sources et méthode · Références de travail</button>
-    <span class="site-version">Version 2.3</span>
+    <span class="site-version">Version 2.5</span>
   </footer>
 </div>
 
@@ -1227,10 +1227,26 @@ function classifyLinkKind(url){
   return 'page';
 }
 
-// Nettoie l'adresse fournie par Excel et ouvre les ressources externes sans
-// transmettre l'URL de la frise comme référent (certains sites la refusent).
+// Répare les caractères UTF-8 parfois interprétés comme du latin-1 par le
+// lecteur XLSX : « à » devient sinon « Ã  », et « é » devient « Ã© ».
+function repairMojibake(value){
+  let source=value||'';
+  // Couvre aussi les formes mixtes observées dans Safari : « Ã%C2%A0 ».
+  try{ source=decodeURI(source); }catch(err){ /* Conserve la valeur d'origine. */ }
+  source=source.replace(/\u00A0/g,'\xA0');
+  if(!/[ÃÂ]/.test(source)) return source;
+  try{
+    const chars=Array.from(source);
+    if(chars.some(char=>char.charCodeAt(0)>255)) return source;
+    return new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(chars,char=>char.charCodeAt(0)));
+  }catch(err){
+    return source;
+  }
+}
+
+// Nettoie et normalise l'adresse fournie par Excel avant de l'ouvrir.
 function safeExternalHref(value){
-  const cleaned=(value||'').replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g,'').trim();
+  const cleaned=repairMojibake(value).replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g,'').trim();
   try{
     const url=new URL(cleaned,window.location.href);
     return url.href;
