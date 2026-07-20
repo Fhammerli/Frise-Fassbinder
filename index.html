@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — Version 2.5</title>
+<title>Fassbinder et l’Allemagne — Version 2.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -640,7 +640,7 @@
   </details>
   <footer class="site-footer">
     <button class="sources-button" id="sourcesButton" type="button">Sources et méthode · Références de travail</button>
-    <span class="site-version">Version 2.5</span>
+    <span class="site-version">Version 2.6</span>
   </footer>
 </div>
 
@@ -1306,7 +1306,9 @@ function parseSheetRows(ws, headerMatch){
   for(let r=headerRowIdx+1;r<rows.length;r++){
     const row=rows[r];
     const idVal=(row[cls.idCol]||'').toString().trim();
-    if(!idVal) break;
+    // Une ligne vide ou incomplète ne doit pas interrompre la lecture de toutes
+    // les années suivantes du classeur.
+    if(!idVal) continue;
     let video=[];
     if(cls.videoCol!=null){
       const cellText=(row[cls.videoCol]||'').toString().trim();
@@ -1388,7 +1390,7 @@ function parseGeneralSourcesWorkbook(wb){
 }
 
 const WORKBOOK_FILENAME = 'RWF_Frise.xlsx';
-const LOCAL_CACHE_KEY = 'RWF_Frise_workbook_v15_ids_films';
+const LOCAL_CACHE_KEY = 'RWF_Frise_workbook_v16_periodes_inferrees';
 const OBSOLETE_CACHE_KEYS = ['RWF_Frise_workbook_v1','RWF_Frise_workbook_v2','RWF_Frise_workbook_v3','RWF_Frise_workbook_v9','RWF_Frise_workbook_v14'];
 
 function arrayBufferToBase64(buffer){
@@ -1427,6 +1429,20 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   if(!periods) throw new Error("Aucune feuille avec une ligne d'en-tête « Dates » trouvée.");
   PERIOD_DATA=periods;
   YEAR_DATA=years||[];
+  // Si l’ID de période a été oublié sur une ligne annuelle, rattache l’année à
+  // la période dont l’intervalle la contient (ex. 1963 → 1961-1966).
+  YEAR_DATA.forEach(yearRow=>{
+    if((yearRow.periodLink||'').trim()) return;
+    const yearMatch=String(yearRow.id||'').match(/\d{4}/);
+    if(!yearMatch) return;
+    const yearNumber=Number(yearMatch[0]);
+    const parent=periods.find(period=>{
+      const bounds=String(period.id||'').match(/\d{4}/g)?.map(Number)||[];
+      if(bounds.length===1) return yearNumber===bounds[0];
+      return bounds.length>=2 && yearNumber>=bounds[0] && yearNumber<=bounds[1];
+    });
+    if(parent) yearRow.periodLink=parent.id;
+  });
   GENERAL_SOURCES=parseGeneralSourcesWorkbook(wb);
   TRACK_LABELS=periods[0].trackLabels;
   if(saveLocally) cacheWorkbook(buffer);
