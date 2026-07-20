@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — Version 2.0</title>
+<title>Fassbinder et l’Allemagne — Version 2.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -102,6 +102,10 @@
   .video-chip{font-family:'IBM Plex Mono', monospace;font-size:11.5px;display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--accent);color:var(--accent-deep);padding:8px 13px;border-radius:3px;text-decoration:none;transition:background .18s ease,color .18s ease;max-width:100%;}
   .video-chip:hover{background:var(--accent);color:#fff;}
   .video-chip svg{flex:none;}
+  .video-chip[data-link-kind="page"]{border-color:#4F6575;color:#344C5C;}
+  .video-chip[data-link-kind="page"]:hover{background:#4F6575;color:#fff;}
+  .video-chip[data-link-kind="document"]{border-color:#6E5A86;color:#59466F;}
+  .video-chip[data-link-kind="document"]:hover{background:#6E5A86;color:#fff;}
 
   .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   @media (max-width:720px){.cards{grid-template-columns:1fr;}}
@@ -503,6 +507,30 @@
 
 .film-person-link{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}.film-person-link:hover{color:var(--ink)}
 
+  /* ---- V2.2 : références de travail ---- */
+  .site-footer{margin:24px 0 0;padding:22px 4px 4px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--ink-soft);}
+  .sources-button{appearance:none;border:0;background:transparent;padding:0;color:var(--accent-deep);font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.035em;text-decoration:underline;text-underline-offset:4px;cursor:pointer;}
+  .sources-button:hover{color:var(--accent);}
+  .site-version{font:10.5px 'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .sources-overlay{position:fixed;inset:0;background:rgba(14,27,38,.42);backdrop-filter:blur(3px);z-index:1199;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+  .sources-overlay.open{opacity:1;pointer-events:auto;}
+  .sources-drawer{position:fixed;z-index:1200;top:0;right:0;height:100vh;width:min(660px,95vw);background:#fff;box-shadow:-18px 0 55px rgba(18,32,45,.22);transform:translateX(104%);transition:transform .25s ease;overflow-y:auto;padding:24px 30px 46px;}
+  .sources-drawer.open{transform:translateX(0);}
+  .sources-close{position:sticky;top:0;margin-left:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #DCE3E8;border-radius:50%;background:#fff;color:#243A4B;font-size:23px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(22,40,54,.08);z-index:2;}
+  .sources-kicker{margin:15px 0 7px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+  .sources-drawer h2{margin:0 0 12px;font:600 35px/1.08 'Source Serif 4',Georgia,serif;color:#1D3448;}
+  .sources-intro{margin:0 0 28px;color:#63717C;font-size:14.5px;line-height:1.6;}
+  .sources-group{padding:23px 0 4px;border-top:1px solid #E2E8EC;}
+  .sources-group h3{margin:0 0 13px;font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:#E45A22;}
+  .sources-list{display:grid;gap:11px;}
+  .source-entry{padding:14px 16px;background:#F7F9FA;border:1px solid #E2E8EC;border-radius:8px;}
+  .source-category{margin:0 0 5px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#74818B;}
+  .source-reference{margin:0;color:#263541;font-size:15px;line-height:1.55;}
+  .source-usage,.source-locations{margin:6px 0 0;color:#687681;font-size:12.5px;line-height:1.5;}
+  .source-entry a{display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:#315D8A;font:500 11px 'IBM Plex Mono',monospace;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere;}
+  .sources-empty{margin:0;padding:14px 16px;background:#F7F9FA;border:1px dashed #CBD6DE;border-radius:8px;color:#74818B;font-size:13.5px;line-height:1.55;}
+  @media(max-width:620px){.sources-drawer{padding:20px 22px 38px}.sources-drawer h2{font-size:30px}}
+
   /* ---- V28 : navigation croisée complète ---- */
   .cross-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 18px;padding:10px 12px;background:#F5F8FA;border:1px solid #D8E1E7;border-radius:4px;}
   .cross-nav-label{font:600 10.5px 'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:#74818B;}
@@ -527,7 +555,7 @@
   <header>
     <p class="eyebrow">Chronologie de travail — usage pédagogique</p>
     <h1>Fassbinder <span>et</span> l’Allemagne</h1>
-    <p class="subtitle">Chronologie à double niveau : par période, puis, sur demande, année par année. Citations, liens vidéo et analyse critique sont accessibles depuis chaque étape.</p>
+    <p class="subtitle">Chronologie à double niveau : par période, puis, sur demande, année par année. Citations, liens multimédias et documentaires, et analyse critique sont accessibles depuis chaque étape.</p>
     <div class="module-buttons">
       <button class="people-index-button" id="peopleIndexButton" type="button">Index des noms <span aria-hidden="true">→</span></button>
       <button class="film-index-button" id="filmIndexButton" type="button">Films <span aria-hidden="true">→</span></button>
@@ -581,6 +609,12 @@
     <div id="filmContent"></div>
   </aside>
 
+  <div class="sources-overlay" id="sourcesOverlay" aria-hidden="true"></div>
+  <aside class="sources-drawer" id="sourcesDrawer" aria-hidden="true" aria-label="Références de travail">
+    <button class="sources-close" id="sourcesClose" type="button" aria-label="Fermer les références">×</button>
+    <div id="sourcesContent"></div>
+  </aside>
+
   <details class="maintenance-panel">
     <summary>État des données</summary>
     <div class="maintenance-content">
@@ -598,12 +632,18 @@
       </div>
     </div>
   </details>
+  <footer class="site-footer">
+    <button class="sources-button" id="sourcesButton" type="button">Sources et méthode · Références de travail</button>
+    <span class="site-version">Version 2.2</span>
+  </footer>
 </div>
 
 <script>
 const PALETTE = ['var(--t1)','var(--t2)','var(--t3)','var(--t4)'];
 const BACKGROUND_PALETTE = ['var(--t1-bg)','var(--t2-bg)','var(--t3-bg)','var(--t4-bg)'];
 const PLAY_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const LINK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+const DOCUMENT_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg>';
 const NOTE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5z"/></svg>';
 
 const appLoader=document.getElementById('appLoader');
@@ -734,6 +774,7 @@ const DEFAULT_YEARS = [
 
 let PERIOD_DATA = DEFAULT_PERIODS;
 let YEAR_DATA = DEFAULT_YEARS;
+let GENERAL_SOURCES = [];
 let TRACK_LABELS = DEFAULT_TRACK_LABELS;
 let activeTracks = new Set(TRACK_LABELS.map((t,i)=>i));
 
@@ -769,6 +810,11 @@ let crossNavigationOrigin=null;
 const filmOverlay=document.getElementById('filmOverlay');
 const filmClose=document.getElementById('filmClose');
 const filmContent=document.getElementById('filmContent');
+const sourcesButton=document.getElementById('sourcesButton');
+const sourcesOverlay=document.getElementById('sourcesOverlay');
+const sourcesDrawer=document.getElementById('sourcesDrawer');
+const sourcesClose=document.getElementById('sourcesClose');
+const sourcesContent=document.getElementById('sourcesContent');
 
 
 function yearsFor(periodId){ return YEAR_DATA.filter(y=>norm(y.periodLink)===norm(periodId)); }
@@ -803,7 +849,10 @@ function renderRow(row){
   (row.video||[]).forEach((v)=>{
     const a=document.createElement('a');
     a.className='video-chip'; a.href=v.url; a.target='_blank'; a.rel='noopener';
-    a.innerHTML = PLAY_SVG + ' ' + (v.label || 'Extrait vidéo');
+    const kind=v.kind || classifyLinkKind(v.url);
+    const icon=kind==='video' ? PLAY_SVG : (kind==='document' ? DOCUMENT_SVG : LINK_SVG);
+    a.dataset.linkKind=kind;
+    a.innerHTML = icon + ' ' + escapeHTML(v.label || defaultLinkLabel(kind));
     videoRowEl.appendChild(a);
   });
 
@@ -1062,7 +1111,7 @@ function classifyHeader(headerRow){
     else if(nl==='notion' || nl==='notions' || nl.includes('notion cle') || nl.includes('notions cles') || nl.includes('mots cles') || nl.includes('mots-clefs')) notionsCol=c;
     else if((nl.includes('id film') || nl.includes('ids film')) && (nl.includes('oeuvre') || nl.includes('uvres'))) filmIdsCol=c;
     else if(nl.includes('periode')) periodLinkCol=c;
-    else if(nl.includes('video')) videoCol=c;
+    else if(nl==='lien' || nl==='liens' || nl.includes('lien video') || nl.includes('liens video')) videoCol=c;
     else if(nl.includes('description') && nl.includes('extrait')) excerptDescriptionCol=c;
     else if(nl.includes('extrait')) excerptCol=c;
     else if(nl.includes('citation')) citationCol=c;
@@ -1146,7 +1195,7 @@ function getCellRichHTML(ws,r,c){
 
 // Reconstruit un tableau de lignes à partir de la plage réelle de la feuille,
 // en conservant la position physique (ligne/colonne) de chaque cellule — nécessaire
-// pour retrouver ensuite les liens hypertexte (colonne vidéos).
+// pour retrouver ensuite les liens hypertexte (colonne « Liens »).
 function sheetToRows(ws){
   if(!ws['!ref']) return [];
   const range=XLSX.utils.decode_range(ws['!ref']);
@@ -1160,27 +1209,48 @@ function sheetToRows(ws){
   return rows;
 }
 
-// Extrait un ou plusieurs liens vidéo depuis une cellule :
+function classifyLinkKind(url){
+  const value=(url||'').trim();
+  const clean=value.split(/[?#]/)[0].toLowerCase();
+  if(/\.(pdf|docx?|odt|rtf|txt|epub|pptx?|odp|xlsx?|ods|csv|zip)$/i.test(clean)) return 'document';
+  try{
+    const host=new URL(value,window.location.href).hostname.toLowerCase().replace(/^www\./,'');
+    if(/(^|\.)(youtube\.com|youtu\.be|vimeo\.com|dailymotion\.com|dai\.ly|arte\.tv|ina\.fr)$/.test(host)) return 'video';
+  }catch(err){ /* Une adresse non absolue reste un lien de page. */ }
+  if(/\.(mp4|webm|ogv|mov|m4v)$/i.test(clean)) return 'video';
+  return 'page';
+}
+
+function defaultLinkLabel(kind,index,total){
+  const base=kind==='video' ? 'Voir la vidéo' : (kind==='document' ? 'Ouvrir le document' : 'Consulter la page');
+  return total>1 ? `${base} ${index+1}` : base;
+}
+
+// Extrait un ou plusieurs liens depuis une cellule :
 // - si la cellule contient un lien hypertexte Excel, on utilise son texte affiché
-//   ("texte à afficher") comme libellé du bouton, ou "Extrait vidéo" à défaut ;
+//   ("texte à afficher") comme libellé du bouton ;
 // - sinon, le texte de la cellule est découpé par point-virgule ou retour à la ligne ;
 //   chaque segment peut être "Libellé|URL" ou une simple URL.
-function parseVideoCell(ws,r,c,cellText){
+function parseLinksCell(ws,r,c,cellText){
   const cell=ws[XLSX.utils.encode_cell({r,c})];
   if(cell && cell.l && cell.l.Target){
+    const url=cell.l.Target.trim();
+    const kind=classifyLinkKind(url);
     const label=(cellText||'').trim();
-    return [{ url:cell.l.Target, label: label || 'Extrait vidéo' }];
+    const customLabel=Boolean(label && label!==url);
+    return [{ url, kind, customLabel, label: customLabel ? label : defaultLinkLabel(kind,0,1) }];
   }
   if(!cellText) return [];
   const chunks=cellText.split(/[;\n]/).map(s=>s.trim()).filter(Boolean);
   return chunks.map((chunk,i)=>{
     const pipeIdx=chunk.indexOf('|');
+    let label='',url=chunk;
     if(pipeIdx>-1){
-      const label=chunk.slice(0,pipeIdx).trim();
-      const url=chunk.slice(pipeIdx+1).trim();
-      return { url, label: label || (chunks.length>1?`Extrait vidéo ${i+1}`:'Extrait vidéo') };
+      label=chunk.slice(0,pipeIdx).trim();
+      url=chunk.slice(pipeIdx+1).trim();
     }
-    return { url:chunk, label: chunks.length>1?`Extrait vidéo ${i+1}`:'Extrait vidéo' };
+    const kind=classifyLinkKind(url);
+    return { url, kind, customLabel:Boolean(label), label: label || defaultLinkLabel(kind,i,chunks.length) };
   });
 }
 
@@ -1206,7 +1276,7 @@ function parseSheetRows(ws, headerMatch){
     let video=[];
     if(cls.videoCol!=null){
       const cellText=(row[cls.videoCol]||'').toString().trim();
-      video=parseVideoCell(ws,row._physicalRow,colOffset+cls.videoCol,cellText);
+      video=parseLinksCell(ws,row._physicalRow,colOffset+cls.videoCol,cellText);
     }
     const physicalRow=row._physicalRow;
     const richCell=(relativeCol)=>getCellRichHTML(ws,physicalRow,colOffset+relativeCol).trim();
@@ -1239,6 +1309,48 @@ function parseSheetRows(ws, headerMatch){
     });
   }
   return out;
+}
+
+function parseGeneralSourcesWorkbook(wb){
+  const sheetName=wb.SheetNames.find(name=>{
+    const n=headerNorm(name);
+    return n==='sources generales' || n==='references generales' || n==='bibliographie generale';
+  });
+  if(!sheetName) return [];
+  const ws=wb.Sheets[sheetName];
+  const rows=sheetToRows(ws);
+  if(!rows.length) return [];
+  let headerIndex=-1, columns=null;
+  for(let r=0;r<rows.length;r++){
+    const normalized=rows[r].map(headerNorm);
+    const reference=normalized.findIndex(value=>value.includes('reference') || value.includes('bibliograph'));
+    if(reference<0) continue;
+    headerIndex=r;
+    columns={
+      category:normalized.findIndex(value=>value.includes('categorie') || value.includes('type')),
+      reference,
+      usage:normalized.findIndex(value=>value.includes('usage') || value.includes('utilisation') || value.includes('fonction')),
+      link:normalized.findIndex(value=>value==='lien' || value==='url' || value.includes('lien externe'))
+    };
+    break;
+  }
+  if(headerIndex<0 || !columns) return [];
+  const offset=rows[headerIndex]._colOffset;
+  const sources=[];
+  for(let r=headerIndex+1;r<rows.length;r++){
+    const row=rows[r], physicalRow=row._physicalRow;
+    const plain=index=>index>=0 ? getCellText(ws,physicalRow,offset+index).trim() : '';
+    const rich=index=>index>=0 ? getCellRichHTML(ws,physicalRow,offset+index).trim() : '';
+    const reference=rich(columns.reference);
+    let url=plain(columns.link);
+    if(columns.link>=0){
+      const linkCell=ws[XLSX.utils.encode_cell({r:physicalRow,c:offset+columns.link})];
+      if(linkCell && linkCell.l && linkCell.l.Target) url=linkCell.l.Target.trim();
+    }
+    if(!reference && !url) continue;
+    sources.push({category:plain(columns.category),reference,usage:rich(columns.usage),url});
+  }
+  return sources;
 }
 
 const WORKBOOK_FILENAME = 'RWF_Frise.xlsx';
@@ -1281,6 +1393,7 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   if(!periods) throw new Error("Aucune feuille avec une ligne d'en-tête « Dates » trouvée.");
   PERIOD_DATA=periods;
   YEAR_DATA=years||[];
+  GENERAL_SOURCES=parseGeneralSourcesWorkbook(wb);
   TRACK_LABELS=periods[0].trackLabels;
   if(saveLocally) cacheWorkbook(buffer);
   const detected=[];
@@ -1289,6 +1402,7 @@ function applyWorkbook(buffer,sourceLabel,saveLocally=false){
   if(YEAR_DATA.some(r=>(r.excerptPrompt||'').trim())) detected.push('consignes liées aux extraits');
   if(periods.some(r=>(r.notions||'').trim()) || YEAR_DATA.some(r=>(r.notions||'').trim())) detected.push('notions');
   if(periods.some(r=>(r.filmIds||[]).length) || YEAR_DATA.some(r=>(r.filmIds||[]).length)) detected.push('liens films par ID');
+  if(GENERAL_SOURCES.length) detected.push('références générales');
   statusEl.textContent=sourceLabel + (detected.length ? ' — détecté : '+detected.join(', ') : ' — aucune nouvelle colonne renseignée détectée');
   statusEl.className='status ok';
   rebuildPeopleOccurrences();
@@ -1357,6 +1471,87 @@ fileInput.addEventListener('change',(e)=>{
   };
   reader.readAsArrayBuffer(file);
 });
+
+function timelineLinkKey(value){
+  try{
+    const url=new URL((value||'').trim(),window.location.href);
+    url.hostname=url.hostname.toLowerCase();
+    return url.href.replace(/\/$/,'');
+  }catch(err){ return (value||'').trim(); }
+}
+
+function timelineLinkHost(value){
+  try{ return new URL(value,window.location.href).hostname.replace(/^www\./,''); }
+  catch(err){ return ''; }
+}
+
+function collectTimelineLinks(){
+  const found=new Map();
+  const addRows=(rows,locationLabel)=>rows.forEach(row=>{
+    (row.video||[]).forEach(link=>{
+      if(!link.url) return;
+      const key=timelineLinkKey(link.url);
+      if(!key) return;
+      if(!found.has(key)) found.set(key,{...link,locations:new Set()});
+      const item=found.get(key);
+      if(link.customLabel && !item.customLabel){item.label=link.label;item.customLabel=true;}
+      item.locations.add(locationLabel(row));
+    });
+  });
+  addRows(PERIOD_DATA,row=>'Période '+row.id);
+  addRows(YEAR_DATA,row=>'Année '+row.id);
+  return [...found.values()].map(item=>({...item,locations:[...item.locations]}));
+}
+
+function renderGeneralSources(){
+  if(!GENERAL_SOURCES.length){
+    return '<p class="sources-empty">Aucune référence générale n’est encore renseignée. Ajoutez vos ouvrages et sites dans la feuille <strong>Sources générales</strong> du tableau de la frise.</p>';
+  }
+  return '<div class="sources-list">'+GENERAL_SOURCES.map(source=>{
+    const link=source.url ? '<a href="'+escapeHTML(source.url)+'" target="_blank" rel="noopener">'+LINK_SVG+' Consulter la ressource</a>' : '';
+    return '<article class="source-entry">'+
+      (source.category?'<p class="source-category">'+escapeHTML(source.category)+'</p>':'')+
+      '<p class="source-reference">'+(source.reference||escapeHTML(source.url))+'</p>'+
+      (source.usage?'<p class="source-usage"><strong>Usage :</strong> '+source.usage+'</p>':'')+
+      link+'</article>';
+  }).join('')+'</div>';
+}
+
+function renderTimelineSources(){
+  const links=collectTimelineLinks();
+  if(!links.length) return '<p class="sources-empty">Aucun lien n’est encore renseigné dans les feuilles Périodes et Années.</p>';
+  return '<div class="sources-list">'+links.map(link=>{
+    const kind=link.kind||classifyLinkKind(link.url);
+    const host=timelineLinkHost(link.url);
+    const title=link.customLabel ? link.label : (kind==='video'?'Vidéo':kind==='document'?'Document':'Page web')+(host?' — '+host:'');
+    const icon=kind==='video'?PLAY_SVG:(kind==='document'?DOCUMENT_SVG:LINK_SVG);
+    return '<article class="source-entry"><p class="source-category">'+escapeHTML(kind==='video'?'Vidéo':kind==='document'?'Document':'Page web')+'</p>'+
+      '<p class="source-reference"><a href="'+escapeHTML(link.url)+'" target="_blank" rel="noopener">'+icon+' '+escapeHTML(title)+'</a></p>'+
+      '<p class="source-locations"><strong>Cité dans :</strong> '+escapeHTML(link.locations.join(' · '))+'</p></article>';
+  }).join('')+'</div>';
+}
+
+function renderSourcesDrawer(){
+  sourcesContent.innerHTML='<p class="sources-kicker">Sources et méthode</p><h2>Références de travail</h2>'+
+    '<p class="sources-intro">Cette frise est un outil pédagogique évolutif. Les références générales indiquent les ouvrages et sites qui structurent le travail ; les ressources ponctuelles sont recensées automatiquement à partir des liens associés aux périodes et aux années.</p>'+
+    '<section class="sources-group"><h3>Références générales</h3>'+renderGeneralSources()+'</section>'+
+    '<section class="sources-group"><h3>Ressources citées dans la frise</h3>'+renderTimelineSources()+'</section>';
+}
+
+function openSources(){
+  if(personDrawer.classList.contains('open')) closePerson();
+  if(filmDrawer.classList.contains('open')) closeFilm();
+  renderSourcesDrawer();
+  sourcesDrawer.classList.add('open');sourcesOverlay.classList.add('open');
+  sourcesDrawer.setAttribute('aria-hidden','false');sourcesOverlay.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';sourcesClose.focus();
+}
+
+function closeSources(){
+  sourcesDrawer.classList.remove('open');sourcesOverlay.classList.remove('open');
+  sourcesDrawer.setAttribute('aria-hidden','true');sourcesOverlay.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
 
 
 // ---------- TABLEAU DE L’ENTOURAGE ----------
@@ -2204,6 +2399,7 @@ async function loadFilmsWorkbook(){
 }
 filmsFileInput.addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=evt=>{try{applyFilmsWorkbook(evt.target.result,'Tableau de films importé et mémorisé',true);}catch(err){filmsStatusEl.textContent='Erreur : '+err.message;filmsStatusEl.className='status err';}};reader.readAsArrayBuffer(file);});
 filmIndexButton.addEventListener('click',openFilmIndex);filmClose.addEventListener('click',closeFilm);filmOverlay.addEventListener('click',closeFilm);
+sourcesButton.addEventListener('click',openSources);sourcesClose.addEventListener('click',closeSources);sourcesOverlay.addEventListener('click',closeSources);
 document.addEventListener('click',e=>{
   const backFilm=e.target.closest('[data-cross-back-film]');
   if(backFilm){const person=PEOPLE_DATA.find(p=>p.id===activePersonId);closePerson();crossNavigationOrigin=null;openFilm(backFilm.dataset.crossBackFilm,person?{type:'person',id:person.id,label:person.name}:null);return;}
@@ -2221,6 +2417,7 @@ document.addEventListener('click',e=>{
   if(yearButton){closeFilm();crossNavigationOrigin=null;navigateToCitedYear(yearButton.dataset.filmYear);}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&filmDrawer.classList.contains('open'))closeFilm();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sourcesDrawer.classList.contains('open'))closeSources();});
 
 (async function startV28(){
   setStartupProgress(10,'Initialisation de la chronologie…','Préparation du lecteur Excel');
