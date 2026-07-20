@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — Version 2.2</title>
+<title>Fassbinder et l’Allemagne — Version 2.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -294,6 +294,12 @@
     box-shadow:0 6px 16px rgba(29,52,72,.16);
   }
   .video-chip:hover{background:var(--accent);}
+  .video-chip[data-link-kind="video"]{color:#FFFFFF;background:#1D3448;}
+  .video-chip[data-link-kind="page"]{color:#FFFFFF;background:#4F6575;}
+  .video-chip[data-link-kind="document"]{color:#FFFFFF;background:#6E5A86;}
+  .video-chip[data-link-kind="video"]:hover,
+  .video-chip[data-link-kind="page"]:hover,
+  .video-chip[data-link-kind="document"]:hover{color:#FFFFFF;background:var(--accent);}
 
   .excerpt-layout{
     grid-template-columns:minmax(240px,34%) minmax(0,1fr);
@@ -634,7 +640,7 @@
   </details>
   <footer class="site-footer">
     <button class="sources-button" id="sourcesButton" type="button">Sources et méthode · Références de travail</button>
-    <span class="site-version">Version 2.2</span>
+    <span class="site-version">Version 2.3</span>
   </footer>
 </div>
 
@@ -848,7 +854,7 @@ function renderRow(row){
   videoRowEl.innerHTML='';
   (row.video||[]).forEach((v)=>{
     const a=document.createElement('a');
-    a.className='video-chip'; a.href=v.url; a.target='_blank'; a.rel='noopener';
+    a.className='video-chip'; a.href=safeExternalHref(v.url); a.target='_blank'; a.rel='noopener noreferrer';
     const kind=v.kind || classifyLinkKind(v.url);
     const icon=kind==='video' ? PLAY_SVG : (kind==='document' ? DOCUMENT_SVG : LINK_SVG);
     a.dataset.linkKind=kind;
@@ -1221,6 +1227,18 @@ function classifyLinkKind(url){
   return 'page';
 }
 
+// Nettoie l'adresse fournie par Excel et ouvre les ressources externes sans
+// transmettre l'URL de la frise comme référent (certains sites la refusent).
+function safeExternalHref(value){
+  const cleaned=(value||'').replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g,'').trim();
+  try{
+    const url=new URL(cleaned,window.location.href);
+    return url.href;
+  }catch(err){
+    return cleaned;
+  }
+}
+
 function defaultLinkLabel(kind,index,total){
   const base=kind==='video' ? 'Voir la vidéo' : (kind==='document' ? 'Ouvrir le document' : 'Consulter la page');
   return total>1 ? `${base} ${index+1}` : base;
@@ -1508,7 +1526,7 @@ function renderGeneralSources(){
     return '<p class="sources-empty">Aucune référence générale n’est encore renseignée. Ajoutez vos ouvrages et sites dans la feuille <strong>Sources générales</strong> du tableau de la frise.</p>';
   }
   return '<div class="sources-list">'+GENERAL_SOURCES.map(source=>{
-    const link=source.url ? '<a href="'+escapeHTML(source.url)+'" target="_blank" rel="noopener">'+LINK_SVG+' Consulter la ressource</a>' : '';
+    const link=source.url ? '<a href="'+escapeHTML(safeExternalHref(source.url))+'" target="_blank" rel="noopener noreferrer">'+LINK_SVG+' Consulter la ressource</a>' : '';
     return '<article class="source-entry">'+
       (source.category?'<p class="source-category">'+escapeHTML(source.category)+'</p>':'')+
       '<p class="source-reference">'+(source.reference||escapeHTML(source.url))+'</p>'+
@@ -1526,7 +1544,7 @@ function renderTimelineSources(){
     const title=link.customLabel ? link.label : (kind==='video'?'Vidéo':kind==='document'?'Document':'Page web')+(host?' — '+host:'');
     const icon=kind==='video'?PLAY_SVG:(kind==='document'?DOCUMENT_SVG:LINK_SVG);
     return '<article class="source-entry"><p class="source-category">'+escapeHTML(kind==='video'?'Vidéo':kind==='document'?'Document':'Page web')+'</p>'+
-      '<p class="source-reference"><a href="'+escapeHTML(link.url)+'" target="_blank" rel="noopener">'+icon+' '+escapeHTML(title)+'</a></p>'+
+      '<p class="source-reference"><a href="'+escapeHTML(safeExternalHref(link.url))+'" target="_blank" rel="noopener noreferrer">'+icon+' '+escapeHTML(title)+'</a></p>'+
       '<p class="source-locations"><strong>Cité dans :</strong> '+escapeHTML(link.locations.join(' · '))+'</p></article>';
   }).join('')+'</div>';
 }
