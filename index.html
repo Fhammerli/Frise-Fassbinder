@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder et l’Allemagne — Version 2.6</title>
+<title>Fassbinder et l’Allemagne — Version 2.7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -640,7 +640,7 @@
   </details>
   <footer class="site-footer">
     <button class="sources-button" id="sourcesButton" type="button">Sources et méthode · Références de travail</button>
-    <span class="site-version">Version 2.6</span>
+    <span class="site-version">Version 2.7</span>
   </footer>
 </div>
 
@@ -2202,6 +2202,17 @@ function resolveFilmImageSrc(value){
   const encoded=clean.split('/').map(part=>encodeURIComponent(part)).join('/');
   return clean.toLocaleLowerCase('fr').startsWith('films_images/') ? encoded : 'Films_images/'+encoded;
 }
+function inferredFilmPosterPath(title){
+  if(!title) return '';
+  const filename=title.toString().normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[’']/g,'_')
+    .replace(/[<>:"/\\|?*.,;!]+/g,'')
+    .trim()
+    .replace(/\s+/g,'_')
+    .replace(/_+/g,'_');
+  return filename ? resolveFilmImageSrc(filename+'.jpg') : '';
+}
 function splitFilmValues(value){
   return (value||'').toString().split(/[|\n]/).map(v=>v.trim()).filter(Boolean);
 }
@@ -2263,13 +2274,14 @@ function parseFilmsWorkbook(buffer){
       const rich=col=>col==null?'':getCellRichHTML(ws,row._physicalRow,offset+col).trim();
       const title=plain(cols.title); if(!title) continue;
       const year=plain(cols.year);
+      const posterValue=plain(cols.poster);
       films.push({
         id:plain(cols.normalizedId)||plain(cols.id)||('film-'+filmSlug(title)+'-'+r), title, original:plain(cols.original), year,
         type:plain(cols.type), duration:plain(cols.duration), country:plain(cols.country), director:plain(cols.director),
         screenplay:rich(cols.screenplay), cinematography:rich(cols.cinematography), editing:rich(cols.editing), decor:rich(cols.decor), music:rich(cols.music), production:rich(cols.production),
         cast:splitFilmValues(plain(cols.cast)), crew:splitFilmValues(plain(cols.crew)), castIds:splitFilmIds(plain(cols.castIds)), crewIds:splitFilmIds(plain(cols.crewIds)), synopsis:rich(cols.synopsis),
         excerpts:splitFilmValues(plain(cols.excerpts)), analysis:rich(cols.analysis), bibliography:splitFilmValues(rich(cols.bibliography)),
-        poster:resolveFilmImageSrc(plain(cols.poster)), posterLegend:plain(cols.posterLegend), posterSource:plain(cols.posterSource),
+        poster:resolveFilmImageSrc(posterValue)||inferredFilmPosterPath(title), posterExplicit:Boolean(posterValue), posterLegend:plain(cols.posterLegend), posterSource:plain(cols.posterSource),
         timelineYears:splitFilmValues(plain(cols.timeline)), keywords:splitFilmValues(plain(cols.keywords)), sources:splitFilmValues(plain(cols.sources)), status:plain(cols.status)
       });
     }
@@ -2405,7 +2417,7 @@ function openFilm(filmId,origin=null){
   const f=FILMS_DATA.find(x=>x.id===filmId); if(!f) return;
   activeFilmId=filmId;
   if(origin) crossNavigationOrigin=origin;
-  const poster=f.poster?'<div class="film-poster"><img src="'+escapeHTML(f.poster)+'" alt="Affiche de '+escapeHTML(f.title)+'"></div>':'<div class="film-poster-missing">Affiche non renseignée<br>Films_images/</div>';
+  const poster=f.poster?'<div class="film-poster"><img src="'+escapeHTML(f.poster)+'" alt="Affiche de '+escapeHTML(f.title)+'"></div>':'';
   const metaParts=[f.type,f.duration?(f.duration+' min'):'',f.country].filter(Boolean);
   const yearMeta=f.year
     ? '<button class="film-year-link film-main-year" data-film-year="'+escapeHTML(f.year)+'" type="button" title="Revenir à '+escapeHTML(f.year)+' sur la frise">'+escapeHTML(f.year)+'</button>'
@@ -2417,7 +2429,11 @@ function openFilm(filmId,origin=null){
     ? '<nav class="cross-nav" aria-label="Navigation croisée"><span class="cross-nav-label">Depuis la personne</span><button type="button" data-cross-back-person="'+escapeHTML(crossNavigationOrigin.id)+'">← Retour à '+escapeHTML(crossNavigationOrigin.label||'la fiche personne')+'</button></nav>'
     : '';
   filmContent.innerHTML=crossNav+'<div class="film-profile">'+poster+'<div class="film-profile-main"><p class="film-kicker">Film</p><h2>'+escapeHTML(f.title)+'</h2>'+(f.original&&norm(f.original)!==norm(f.title)?'<p class="film-original-title">'+escapeHTML(f.original)+'</p>':'')+'<p class="film-meta">'+metaHTML+'</p></div></div>'+filmSection('Synopsis',f.synopsis)+filmListSection('Générique technique',credits)+renderFilmCastSection(f.cast,f.castIds)+filmListSection('Autres indications techniques',renderFilmCreditEntries(f.crew,f.crewIds))+excerpts+filmSection('Analyse',f.analysis)+filmListSection('Bibliographie',f.bibliography)+filmListSection('Sources',f.sources);
-  const img=filmContent.querySelector('.film-poster img'); if(img) img.addEventListener('error',()=>img.closest('.film-poster').outerHTML='<div class="film-poster-missing">Image introuvable<br>'+escapeHTML(f.poster.replace(/^Films_images\//,''))+'</div>',{once:true});
+  const img=filmContent.querySelector('.film-poster img'); if(img) img.addEventListener('error',()=>{
+    const container=img.closest('.film-poster');
+    if(f.posterExplicit) container.outerHTML='<div class="film-poster-missing">Image introuvable<br>'+escapeHTML(f.poster.replace(/^Films_images\//,''))+'</div>';
+    else container.remove();
+  },{once:true});
   filmDrawer.classList.add('open');
   filmOverlay.classList.add('open');
   filmDrawer.setAttribute('aria-hidden','false');
