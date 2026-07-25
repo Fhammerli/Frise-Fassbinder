@@ -29,14 +29,14 @@
 .learning-tools .people-index-button,.learning-tools .film-index-button,.learning-tool-button{margin-top:0;display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid #C7D4DE;border-radius:999px;background:#fff;color:#1D3448;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;cursor:pointer;box-shadow:0 5px 16px rgba(20,38,52,.06)}
 .learning-tool-button:hover{border-color:var(--accent);color:var(--accent-deep)}
 .learning-tool-button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.learning-overlay,
-.learning-overlay.open,
-.learning-drawer,
-.learning-drawer.open,
-.learning-close,
-.learning-kicker,
-.learning-drawer h2,
-.learning-intro,
+.learning-overlay{position:fixed;inset:0;z-index:1199;background:rgba(14,27,38,.44);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s ease}
+.learning-overlay.open{opacity:1;pointer-events:auto}
+.learning-drawer{position:fixed;z-index:1200;top:0;right:0;height:100vh;width:min(720px,96vw);background:#fff;box-shadow:-18px 0 55px rgba(18,32,45,.22);transform:translateX(102%);transition:transform .25s ease;overflow-y:auto;padding:28px 32px 44px}
+.learning-drawer.open{transform:translateX(0)}
+.learning-close{position:sticky;top:0;margin-left:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #DCE3E8;border-radius:50%;background:#fff;color:#243A4B;font-size:23px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(22,40,54,.08);z-index:2}
+.learning-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:18px 0 8px}
+.learning-drawer h2{font-family:'Oswald',sans-serif;font-size:36px;line-height:1.08;margin:0;color:#1D3448}
+.learning-intro{color:#667481;font-size:15px;line-height:1.6;margin:10px 0 22px}
 .learning-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 22px;padding:14px;border:1px solid #DDE5EB;border-radius:12px;background:#F7F9FB}
 .learning-toolbar select,.learning-toolbar button{font-family:'IBM Plex Mono',monospace;font-size:11px}
 .learning-toolbar select{min-width:210px;max-width:100%;padding:9px 34px 9px 11px;border:1px solid #CAD5DE;border-radius:8px;background:#fff;color:#1D3448}
@@ -58,7 +58,7 @@
 .flash-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#687885;margin-bottom:16px}.flash-text{font-size:23px;line-height:1.45;color:#1D2B36;white-space:pre-line}.flash-hint{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#85919A;margin-top:20px}.flash-controls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}.flash-counter{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;min-width:96px;text-align:center}
 .learning-empty{padding:22px;border:1px dashed #B9C5CE;border-radius:12px;background:#F7F9FB;color:#60717E;line-height:1.6}
 
-@media(max-width:720px){.learning-drawer,.learning-drawer h2,.flashcard{min-height:300px}.flash-face{padding:23px}.flash-text{font-size:20px}.quiz-card{padding:19px}}
+@media(max-width:720px){.learning-drawer{padding:20px 18px 36px}.learning-drawer h2{font-size:31px}.flashcard{min-height:300px}.flash-face{padding:23px}.flash-text{font-size:20px}.quiz-card{padding:19px}}
 </style>`;
 
   const extensionHTML=String.raw`
