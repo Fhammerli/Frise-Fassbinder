@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 2.9</title>
+<title>Chargement de Fassbinder Explorer — Version 3.0</title>
 </head>
 <body>
-<p id="v29-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 2.9…</p>
+<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.0…</p>
 <script>
-(async function loadVersion29(){
+(async function loadVersion30(){
   const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
 
   const learningCSS = String.raw`
@@ -171,6 +171,7 @@ function injectButtons(){
     quiz.id='quizOpen';
     quiz.className='learning-tool-button';
     quiz.textContent='Quiz';
+    quiz.setAttribute('onclick','window.__openFassbinderQuiz && window.__openFassbinderQuiz()');
     bar.appendChild(quiz);
   }
   quiz.onclick=openQuiz;
@@ -182,6 +183,7 @@ function injectButtons(){
     flash.id='flashOpen';
     flash.className='learning-tool-button';
     flash.textContent='Flashcards';
+    flash.setAttribute('onclick','window.__openFassbinderFlashcards && window.__openFassbinderFlashcards()');
     bar.appendChild(flash);
   }
   flash.onclick=openFlash;
@@ -216,6 +218,24 @@ async function importFiles(files,type){const map=type==='quiz'?state.quizSets:st
   else{flashShell();content.querySelector('#flashStatus').textContent=added+' carte(s) ajoutée(s)'+(ignored?' · '+ignored+' fichier(s) sans ligne reconnue':'');content.querySelector('#flashStatus').className='learning-status '+(added?'ok':'err');}}
 function openQuiz(){quizShell();openDrawer();}
 function openFlash(){flashShell();openDrawer();}
+
+window.__openFassbinderQuiz=openQuiz;
+window.__openFassbinderFlashcards=openFlash;
+
+document.addEventListener('click',function(event){
+  const quizButton=event.target.closest && event.target.closest('#quizOpen');
+  if(quizButton){
+    event.preventDefault();
+    openQuiz();
+    return;
+  }
+  const flashButton=event.target.closest && event.target.closest('#flashOpen');
+  if(flashButton){
+    event.preventDefault();
+    openFlash();
+  }
+});
+
 Promise.all([...DEFAULT_QUIZ_FILES.map(f=>loadURL(f,'quiz')),...DEFAULT_FLASHCARD_FILES.map(f=>loadURL(f,'flash'))]).finally(injectButtons);
 injectButtons();
 })();
@@ -225,7 +245,7 @@ injectButtons();
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 2.9');
+    source=source.replaceAll('Version 2.7','Version 3.0');
 
     // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
     source=source.replace(
@@ -234,8 +254,8 @@ injectButtons();
         if(block.includes('id="quizOpen"')) return block;
         return block.replace(
           '</div>',
-          '<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button>'+
-          '<button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button>'+
+          '<button class="learning-tool-button" id="quizOpen" type="button" onclick="window.__openFassbinderQuiz && window.__openFassbinderQuiz()">Quiz</button>'+
+          '<button class="learning-tool-button" id="flashOpen" type="button" onclick="window.__openFassbinderFlashcards && window.__openFassbinderFlashcards()">Flashcards</button>'+
           '</div>'
         );
       }
@@ -273,7 +293,7 @@ parseLinksCell = function(ws,r,c,cellText){
     source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
     document.open();document.write(source);document.close();
   }catch(error){
-    document.getElementById('v29-loader').textContent='Erreur de chargement de la version 2.9 : '+error.message;
+    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.0 : '+error.message;
     console.error(error);
   }
 })();
