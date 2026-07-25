@@ -91,7 +91,7 @@ const diagDrawer=document.getElementById('diagnosticDrawer');
 const diagContent=document.getElementById('diagnosticContent');
 const diagClose=document.getElementById('diagnosticClose');
 const text=v=>v==null?'':String(v).trim();
-const normKey=s=>text(s).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/œ/g,'oe').toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9]+/g,' ').trim();
+const normKey=s=>text(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9]+/g,' ').trim();
 const escapeHTML=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function field(row,aliases){
   const entries=Object.entries(row);
@@ -101,18 +101,18 @@ function field(row,aliases){
 }
 function parseDelimited(raw){
   if(!window.XLSX)throw new Error('Le lecteur CSV n’est pas disponible.');
-  let cleaned=String(raw||'').replace(/^\\uFEFF/,'');
-  const lines=cleaned.split(/\\r?\\n/);
-  if(lines.length>1&&!/[;,\\t]/.test(lines[0])&&/^(front|recto)[;,\\t](back|verso)/i.test(lines[1].trim()))cleaned=lines.slice(1).join('\\n');
+  let cleaned=String(raw||'').replace(/^\uFEFF/,'');
+  const lines=cleaned.split(/\r?\n/);
+  if(lines.length>1&&!/[;,\t]/.test(lines[0])&&/^(front|recto)[;,\t](back|verso)/i.test(lines[1].trim()))cleaned=lines.slice(1).join('\n');
   const wb=XLSX.read(cleaned,{type:'string',raw:false});
   return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
 }
 function answerIndex(answer,options){
   const a=text(answer);if(!a)return-1;
-  const letter=a.match(/^\\s*([A-Za-z])(?:\\s*[.):-]|\\s+)/);if(letter){const i=letter[1].toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
+  const letter=a.match(/^\s*([A-Za-z])(?:\s*[.):-]|\s+)/);if(letter){const i=letter[1].toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
   if(/^[A-Za-z]$/.test(a)){const i=a.toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
-  const number=a.match(/^\\s*(\\d+)(?:\\s*[.):-]|\\s+)/);if(number){const i=Number(number[1])-1;if(i>=0&&i<options.length)return i;}
-  if(/^\\d+$/.test(a)){const i=Number(a)-1;if(i>=0&&i<options.length)return i;}
+  const number=a.match(/^\s*(\d+)(?:\s*[.):-]|\s+)/);if(number){const i=Number(number[1])-1;if(i>=0&&i<options.length)return i;}
+  if(/^\d+$/.test(a)){const i=Number(a)-1;if(i>=0&&i<options.length)return i;}
   return options.findIndex(o=>normKey(o)===normKey(a));
 }
 function shuffledCopy(items){const copy=items.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
@@ -162,28 +162,28 @@ window.__openFassbinderQuiz=openQuiz;window.__openFassbinderFlashcards=openFlash
 Promise.all([...DATA_FILES.map(probeFile),...QUIZ_FILES.map(f=>loadLearningFile(f,'quiz')),...FLASH_FILES.map(f=>loadLearningFile(f,'flash'))]).finally(()=>{injectButtons();renderDiagnostic()});injectButtons();
 })();
 <\/script>`;
-  extensionJS=extensionJS.replaceAll('<\\/script>',scriptEnd);
+  extensionJS=extensionJS.replaceAll('<\/script>',scriptEnd);
 
   let multiLinks=String.raw`
 <script id="v31-multilinks-fix">
 parseLinksCell=function(ws,r,c,cellText){
   const cell=ws[XLSX.utils.encode_cell({r,c})];
   const nativeUrl=(cell&&cell.l&&cell.l.Target)?cell.l.Target.trim():'';
-  const chunks=(cellText||'').split(/[;\\n]/).map(s=>s.trim()).filter(Boolean);
+  const chunks=(cellText||'').split(/[;\n]/).map(s=>s.trim()).filter(Boolean);
   if(!chunks.length){if(!nativeUrl)return[];const kind=classifyLinkKind(nativeUrl);return[{url:nativeUrl,kind,customLabel:false,label:defaultLinkLabel(kind,0,1)}]}
   const links=[];
-  chunks.forEach((chunk,i)=>{const pipe=chunk.indexOf('|');let label='',url='';if(pipe>-1){label=chunk.slice(0,pipe).trim();url=chunk.slice(pipe+1).trim()}else if(/^(https?:\\/\\/|www\\.)/i.test(chunk)){url=chunk}else if(i===0&&nativeUrl){label=chunk;url=nativeUrl}else{console.warn('Lien non identifié : « '+chunk+' ». Utilisez « Libellé|https://adresse ».');return}if(/^www\\./i.test(url))url='https://'+url;if(!url)return;const kind=classifyLinkKind(url);links.push({url,kind,customLabel:Boolean(label),label:label||defaultLinkLabel(kind,links.length,chunks.length)})});
+  chunks.forEach((chunk,i)=>{const pipe=chunk.indexOf('|');let label='',url='';if(pipe>-1){label=chunk.slice(0,pipe).trim();url=chunk.slice(pipe+1).trim()}else if(/^(https?:\/\/|www\.)/i.test(chunk)){url=chunk}else if(i===0&&nativeUrl){label=chunk;url=nativeUrl}else{console.warn('Lien non identifié : « '+chunk+' ». Utilisez « Libellé|https://adresse ».');return}if(/^www\./i.test(url))url='https://'+url;if(!url)return;const kind=classifyLinkKind(url);links.push({url,kind,customLabel:Boolean(label),label:label||defaultLinkLabel(kind,links.length,chunks.length)})});
   return links;
 };
 <\/script>`;
-  multiLinks=multiLinks.replaceAll('<\\/script>',scriptEnd);
+  multiLinks=multiLinks.replaceAll('<\/script>',scriptEnd);
 
   try{
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('socle inaccessible ('+response.status+')');
     let source=await response.text();
     source=source.replaceAll('Version 2.7','Version 3.1');
-    source=source.replace(/(<div class="module-buttons">[\\s\\S]*?<\\/div>)/,block=>block.includes('id="quizOpen"')?block:block.replace('</div>','<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button><button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button></div>'));
+    source=source.replace(/(<div class="module-buttons">[\s\S]*?<\/div>)/,block=>block.includes('id="quizOpen"')?block:block.replace('</div>','<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button><button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button></div>'));
     if(!source.includes('</head>')||!source.includes('</body>'))throw new Error('structure HTML du socle non reconnue');
     source=source.replace('</head>',extensionCSS+'\n</head>');
     source=source.replace('</body>',multiLinks+'\n'+extensionHTML+'\n'+extensionJS+'\n</body>');
