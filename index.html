@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 3.3</title>
+<title>Chargement de Fassbinder Explorer — Version 3.4</title>
 </head>
 <body>
-<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.3…</p>
+<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.4…</p>
 <script>
 (async function loadVersion30(){
   const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
@@ -75,7 +75,11 @@
 <script id="learning-tools-script">
 (function(){
 'use strict';
-const DEFAULT_QUIZ_FILES=['RWF_Quiz.csv'];
+const DEFAULT_QUIZ_FILES=[
+  {file:'RWF_Quiz.csv',label:'Quiz œuvre'},
+  {file:'RWF_Quiz2.csv',label:'Quiz histoire de l’Allemagne'},
+  {file:'RWF-Quiz3.csv',label:'Quiz histoire du Nouveau cinéma allemand'}
+];
 const DEFAULT_FLASHCARD_FILES=['RWF_Flashcards.csv'];
 const state={quizSets:new Map(),flashSets:new Map(),quiz:null,flash:null};
 const overlay=document.getElementById('learningOverlay');
@@ -180,8 +184,26 @@ function flashRows(rows,fallback){
   return out;
 }
 function addToMap(map,items){items.forEach(item=>{if(!map.has(item.group))map.set(item.group,[]);map.get(item.group).push(item);});}
-async function loadURL(url,type){
-  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)return false;const raw=await r.text();const rows=parseDelimited(raw);const fallback=url.split('/').pop().replace(/\\.csv$/i,'').replace(/[_-]+/g,' ');addToMap(type==='quiz'?state.quizSets:state.flashSets,type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback));return true;}catch(err){console.warn('Fichier non chargé : '+url,err);return false;}
+async function loadURL(source,type){
+  const url=typeof source==='string'?source:source.file;
+  const publicLabel=typeof source==='string'?'':source.label;
+  try{
+    const r=await fetch(url,{cache:'no-store'});
+    if(!r.ok)return false;
+    const raw=await r.text();
+    const rows=parseDelimited(raw);
+    const fallback=publicLabel||url.split('/').pop().replace(/\.csv$/i,'').replace(/[_-]+/g,' ');
+    let items=type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback);
+    if(type==='quiz'&&publicLabel){
+      items=items.map(item=>({...item,group:publicLabel}));
+    }
+    if(!items.length)return false;
+    addToMap(type==='quiz'?state.quizSets:state.flashSets,items);
+    return true;
+  }catch(err){
+    console.warn('Fichier non chargé : '+url,err);
+    return false;
+  }
 }
 function injectButtons(){
   let bar=document.querySelector('.module-buttons');
@@ -225,14 +247,39 @@ function closeDrawer(){drawer.classList.remove('open');overlay.classList.remove(
 closeBtn.addEventListener('click',closeDrawer);overlay.addEventListener('click',closeDrawer);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer();});
 function setOptions(select,map){select.innerHTML=[...map.keys()].map(k=>'<option value="'+escapeHTML(k)+'">'+escapeHTML(k)+'</option>').join('');}
 function statusEl(msg,cls=''){return '<div class="learning-status '+cls+'">'+escapeHTML(msg)+'</div>';}
-function quizShell(){content.innerHTML='<p class="learning-kicker">Réviser et vérifier ses connaissances</p><h2>Quiz</h2><p class="learning-intro">Choisissez un quiz. Les lignes du CSV sont regroupées selon la colonne « Quiz » ; une nouvelle valeur dans cette colonne crée automatiquement un nouveau quiz.</p><div class="learning-toolbar"><select id="quizSet" aria-label="Choisir un quiz"></select><button class="learning-action primary" id="quizStart" type="button">Commencer en ordre aléatoire</button><button class="learning-action" id="quizShuffle" type="button">Remélanger</button><label class="learning-file-label">Importer un ou plusieurs CSV<input id="quizFiles" type="file" accept=".csv,text/csv" multiple></label><div id="quizStatus" class="learning-status"></div></div><div id="quizStage"></div>';
-  const select=content.querySelector('#quizSet');setOptions(select,state.quizSets);
-  content.querySelector('#quizStart').onclick=()=>startQuiz(select.value,true);
-  content.querySelector('#quizShuffle').onclick=()=>startQuiz(select.value,true);
-  content.querySelector('#quizFiles').onchange=e=>importFiles(e.target.files,'quiz');
+function quizShell(){
+  content.innerHTML=
+    '<p class="learning-kicker">Réviser et vérifier ses connaissances</p>'+
+    '<h2>Quiz</h2>'+
+    '<p class="learning-intro">Choisissez un quiz thématique. Seuls les quiz dont le fichier CSV est disponible apparaissent dans la liste.</p>'+
+    '<div class="learning-toolbar">'+
+      '<select id="quizSet" aria-label="Choisir un quiz"></select>'+
+      '<button class="learning-action primary" id="quizStart" type="button">Commencer en ordre aléatoire</button>'+
+      '<button class="learning-action" id="quizShuffle" type="button">Remélanger</button>'+
+    '</div>'+
+    '<div id="quizStage"></div>';
+
+  const select=content.querySelector('#quizSet');
+  setOptions(select,state.quizSets);
+
+  const startButton=content.querySelector('#quizStart');
+  const shuffleButton=content.querySelector('#quizShuffle');
+  const hasQuiz=state.quizSets.size>0;
+
+  startButton.disabled=!hasQuiz;
+  shuffleButton.disabled=!hasQuiz;
+  startButton.onclick=()=>startQuiz(select.value,true);
+  shuffleButton.onclick=()=>startQuiz(select.value,true);
+
   renderQuizEmpty();
 }
-function renderQuizEmpty(){const stage=content.querySelector('#quizStage');if(!stage)return;stage.innerHTML=state.quizSets.size?'<div class="learning-empty">Sélectionnez un quiz puis cliquez sur « Commencer ».</div>':'<div class="learning-empty">Aucun fichier chargé. Placez <strong>RWF_Quiz.csv</strong> à côté de l’index ou importez un ou plusieurs fichiers CSV.</div>';}
+function renderQuizEmpty(){
+  const stage=content.querySelector('#quizStage');
+  if(!stage)return;
+  stage.innerHTML=state.quizSets.size
+    ? '<div class="learning-empty">Sélectionnez un quiz puis cliquez sur « Commencer ».</div>'
+    : '<div class="learning-empty">Aucun quiz n’est actuellement disponible.</div>';
+}
 function startQuiz(name,shuffle=true){const source=state.quizSets.get(name)||[];const questions=(shuffle?shuffledCopy(source):source.slice()).map(q=>({...q,options:[...q.options]}));state.quiz={name,questions,index:0,score:0,answered:false,shuffle};renderQuizQuestion();}
 function renderQuizQuestion(){
   const stage=content.querySelector('#quizStage'),qz=state.quiz;
@@ -324,7 +371,7 @@ injectButtons();
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.3');
+    source=source.replaceAll('Version 2.7','Version 3.4');
 
     // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
     source=source.replace(
@@ -373,7 +420,7 @@ parseLinksCell = function(ws,r,c,cellText){
     source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
     document.open();document.write(source);document.close();
   }catch(error){
-    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.3 : '+error.message;
+    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.4 : '+error.message;
     console.error(error);
   }
 })();
