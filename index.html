@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 3.4</title>
+<title>Chargement de Fassbinder Explorer — Version 3.6</title>
 </head>
 <body>
-<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.4…</p>
+<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.6…</p>
 <script>
 (async function loadVersion30(){
   const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
@@ -86,10 +86,27 @@ const overlay=document.getElementById('learningOverlay');
 const drawer=document.getElementById('learningDrawer');
 const content=document.getElementById('learningContent');
 const closeBtn=document.getElementById('learningClose');
-const normKey=s=>(s||'').toString().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const normKey=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const text=v=>v==null?'':String(v).trim();
 const escapeHTML=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-function field(row,aliases){const entries=Object.entries(row);for(const alias of aliases){const target=normKey(alias);const found=entries.find(([k])=>normKey(k)===target);if(found&&text(found[1]))return text(found[1]);}return '';}
+function field(row,aliases){
+  const entries=Object.entries(row);
+
+  // Priorité à la correspondance exacte des en-têtes.
+  // Cela distingue impérativement Option A, Option B, Option C et Option D.
+  for(const alias of aliases){
+    const exact=entries.find(([key])=>text(key).toLowerCase()===text(alias).toLowerCase());
+    if(exact&&text(exact[1]))return text(exact[1]);
+  }
+
+  // Repli tolérant pour les accents et variantes typographiques.
+  for(const alias of aliases){
+    const target=normKey(alias);
+    const found=entries.find(([key])=>normKey(key)===target);
+    if(found&&text(found[1]))return text(found[1]);
+  }
+  return '';
+}
 function parseDelimited(raw){
   if(!window.XLSX) throw new Error('Le lecteur CSV n’est pas disponible.');
   let cleaned=String(raw||'').replace(/^\uFEFF/,'');
@@ -331,9 +348,41 @@ function renderQuizQuestion(){
 }
 function answerQuiz(choice){const qz=state.quiz;if(!qz||qz.answered)return;qz.answered=true;const q=qz.questions[qz.index];if(choice===q.correct)qz.score++;content.querySelectorAll('[data-answer]').forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add('correct');else if(i===choice)b.classList.add('wrong');});content.querySelector('#quizFeedback').innerHTML='<div class="quiz-feedback"><strong>'+(choice===q.correct?'Bonne réponse.':'Réponse incorrecte.')+'</strong>'+(q.explanation?'<br>'+escapeHTML(q.explanation):'')+'</div>';content.querySelector('#quizNext').disabled=false;}
 function renderQuizSummary(){const stage=content.querySelector('#quizStage'),qz=state.quiz;const pct=Math.round((qz.score/qz.questions.length)*100);stage.innerHTML='<div class="quiz-summary"><p class="learning-kicker">Résultat</p><div class="quiz-score">'+qz.score+' / '+qz.questions.length+'</div><p>'+pct+' % de réponses correctes</p><button class="learning-action primary" type="button" id="quizAgain">Recommencer ce quiz</button></div>';stage.querySelector('#quizAgain').onclick=()=>startQuiz(qz.name,qz.shuffle);}
-function flashShell(){content.innerHTML='<p class="learning-kicker">Mémoriser par rappel actif</p><h2>Flashcards</h2><p class="learning-intro">Cliquez sur la carte pour la retourner. Les lignes sont regroupées selon la colonne « Jeu » ou « Deck » ; une nouvelle valeur crée automatiquement un nouveau paquet.</p><div class="learning-toolbar"><select id="flashSet" aria-label="Choisir un jeu de flashcards"></select><button class="learning-action primary" id="flashStart" type="button">Ouvrir en ordre aléatoire</button><button class="learning-action" id="flashShuffle" type="button">Remélanger</button><label class="learning-file-label">Importer un ou plusieurs CSV<input id="flashFiles" type="file" accept=".csv,text/csv" multiple></label><div id="flashStatus" class="learning-status"></div></div><div id="flashStage"></div>';
-  const select=content.querySelector('#flashSet');setOptions(select,state.flashSets);content.querySelector('#flashStart').onclick=()=>startFlash(select.value,true);content.querySelector('#flashShuffle').onclick=()=>startFlash(select.value,true);content.querySelector('#flashFiles').onchange=e=>importFiles(e.target.files,'flash');renderFlashEmpty();}
-function renderFlashEmpty(){const stage=content.querySelector('#flashStage');if(!stage)return;stage.innerHTML=state.flashSets.size?'<div class="learning-empty">Sélectionnez un jeu puis cliquez sur « Ouvrir ».</div>':'<div class="learning-empty">Aucun fichier chargé. Placez <strong>RWF_Flashcards.csv</strong> à côté de l’index ou importez un ou plusieurs fichiers CSV.</div>';}
+function flashShell(){
+  content.innerHTML=
+    '<p class="learning-kicker">Mémoriser par rappel actif</p>'+
+    '<h2>Flashcards</h2>'+
+    '<p class="learning-intro">Cliquez sur la carte pour la retourner. Les lignes sont regroupées selon la colonne « Jeu » ou « Deck » ; une nouvelle valeur crée automatiquement un nouveau paquet.</p>'+
+    '<div class="learning-toolbar">'+
+      '<select id="flashSet" aria-label="Choisir un jeu de flashcards"></select>'+
+      '<button class="learning-action primary" id="flashStart" type="button">Ouvrir en ordre aléatoire</button>'+
+      '<button class="learning-action" id="flashShuffle" type="button">Remélanger</button>'+
+      '<div id="flashStatus" class="learning-status"></div>'+
+    '</div>'+
+    '<div id="flashStage"></div>';
+
+  const select=content.querySelector('#flashSet');
+  setOptions(select,state.flashSets);
+
+  const startButton=content.querySelector('#flashStart');
+  const shuffleButton=content.querySelector('#flashShuffle');
+  const hasFlashcards=state.flashSets.size>0;
+
+  startButton.disabled=!hasFlashcards;
+  shuffleButton.disabled=!hasFlashcards;
+
+  startButton.onclick=()=>startFlash(select.value,true);
+  shuffleButton.onclick=()=>startFlash(select.value,true);
+
+  renderFlashEmpty();
+}
+function renderFlashEmpty(){
+  const stage=content.querySelector('#flashStage');
+  if(!stage)return;
+  stage.innerHTML=state.flashSets.size
+    ? '<div class="learning-empty">Sélectionnez un jeu puis cliquez sur « Ouvrir ».</div>'
+    : '<div class="learning-empty">Aucun jeu de flashcards n’est actuellement disponible.</div>';
+}
 function startFlash(name,shuffle=true){const source=state.flashSets.get(name)||[];const cards=(shuffle?shuffledCopy(source):source.slice()).map(c=>({...c}));state.flash={name,cards,index:0,shuffle};renderFlashCard();}
 function renderFlashCard(){const stage=content.querySelector('#flashStage'),fs=state.flash;if(!stage||!fs||!fs.cards.length)return renderFlashEmpty();const c=fs.cards[fs.index];stage.innerHTML='<div class="quiz-progress">'+escapeHTML(fs.name)+(c.category?' · '+escapeHTML(c.category):'')+'</div><div class="flashcard-wrap"><div class="flashcard" id="flashCard" tabindex="0" role="button" aria-label="Retourner la carte"><div class="flash-face front"><div class="flash-label">Question</div><div class="flash-text">'+escapeHTML(c.front)+'</div><div class="flash-hint">Cliquer pour afficher la réponse</div></div><div class="flash-face back"><div class="flash-label">Réponse</div><div class="flash-text">'+escapeHTML(c.back)+'</div><div class="flash-hint">Cliquer pour revenir à la question</div></div></div></div><div class="flash-controls"><button class="learning-action" id="flashPrev" type="button">← Précédente</button><span class="flash-counter">'+(fs.index+1)+' / '+fs.cards.length+'</span><button class="learning-action primary" id="flashNext" type="button">Suivante →</button></div>';
   const card=stage.querySelector('#flashCard');const flip=()=>card.classList.toggle('flipped');card.onclick=flip;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}};stage.querySelector('#flashPrev').onclick=()=>{fs.index=(fs.index-1+fs.cards.length)%fs.cards.length;renderFlashCard();};stage.querySelector('#flashNext').onclick=()=>{fs.index=(fs.index+1)%fs.cards.length;renderFlashCard();};}
@@ -371,7 +420,7 @@ injectButtons();
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.4');
+    source=source.replaceAll('Version 2.7','Version 3.6');
 
     // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
     source=source.replace(
@@ -420,7 +469,7 @@ parseLinksCell = function(ws,r,c,cellText){
     source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
     document.open();document.write(source);document.close();
   }catch(error){
-    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.4 : '+error.message;
+    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.6 : '+error.message;
     console.error(error);
   }
 })();
