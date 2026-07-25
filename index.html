@@ -19,7 +19,7 @@
 
     source = source.replaceAll('Version 2.7','Version 2.8');
 
-    const lastScriptClose = source.lastIndexOf('</script>');
+    const lastScriptClose = source.lastIndexOf('<\/script>');
     if(lastScriptClose < 0) {
       throw new Error('Structure HTML de la version 2.7 non reconnue.');
     }
