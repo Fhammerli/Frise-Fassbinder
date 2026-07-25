@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder Explorer — Version 3.1 finale</title>
-<!-- BUILD V3.1-FINALE-PUBLIQUE -->
+<title>Fassbinder Explorer — Version 3.1 stabilisée</title>
+<!-- BUILD V3.1-STABILISEE — correctif scripts Quiz/Flashcards -->
 </head>
 <body>
 <p id="v31-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.1…</p>
@@ -166,8 +166,8 @@ function openQuiz(){quizShell();openDrawer()}function openFlash(){flashShell();o
 window.__openFassbinderQuiz=openQuiz;window.__openFassbinderFlashcards=openFlash;
 Promise.all([...DATA_FILES.map(probeFile),...QUIZ_FILES.map(f=>loadLearningFile(f,'quiz')),...FLASH_FILES.map(f=>loadLearningFile(f,'flash'))]).finally(injectButtons);injectButtons();
 })();
-<\/script>`;
-  extensionJS=extensionJS.replaceAll('<\/script>',scriptEnd);
+__V31_SCRIPT_END__`;
+  extensionJS=extensionJS.replace('__V31_SCRIPT_END__',scriptEnd);
 
   let multiLinks=String.raw`
 <script id="v31-multilinks-fix">
@@ -180,8 +180,8 @@ parseLinksCell=function(ws,r,c,cellText){
   chunks.forEach((chunk,i)=>{const pipe=chunk.indexOf('|');let label='',url='';if(pipe>-1){label=chunk.slice(0,pipe).trim();url=chunk.slice(pipe+1).trim()}else if(/^(https?:\/\/|www\.)/i.test(chunk)){url=chunk}else if(i===0&&nativeUrl){label=chunk;url=nativeUrl}else{console.warn('Lien non identifié : « '+chunk+' ». Utilisez « Libellé|https://adresse ».');return}if(/^www\./i.test(url))url='https://'+url;if(!url)return;const kind=classifyLinkKind(url);links.push({url,kind,customLabel:Boolean(label),label:label||defaultLinkLabel(kind,links.length,chunks.length)})});
   return links;
 };
-<\/script>`;
-  multiLinks=multiLinks.replaceAll('<\/script>',scriptEnd);
+__V31_SCRIPT_END__`;
+  multiLinks=multiLinks.replace('__V31_SCRIPT_END__',scriptEnd);
 
   try{
     const response=await fetch(sourceUrl,{cache:'no-store'});
