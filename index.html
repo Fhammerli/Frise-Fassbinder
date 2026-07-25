@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 3.1</title>
+<title>Chargement de Fassbinder Explorer — Version 3.2</title>
 </head>
 <body>
-<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.1…</p>
+<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.2…</p>
 <script>
 (async function loadVersion30(){
   const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
@@ -240,13 +240,14 @@ Promise.all([...DEFAULT_QUIZ_FILES.map(f=>loadURL(f,'quiz')),...DEFAULT_FLASHCAR
 injectButtons();
 })();
 <\/script>`;
-  learningJS = learningJS.replaceAll('<\\/script>', '</script>');
+  const scriptEnd='<'+'/script>';
+  learningJS = learningJS.replaceAll('<\\/script>', scriptEnd);
 
   try{
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.1');
+    source=source.replaceAll('Version 2.7','Version 3.2');
 
     // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
     source=source.replace(
@@ -263,7 +264,7 @@ injectButtons();
     );
 
     // V2.8 conservée : lecture robuste de plusieurs liens dans une cellule de la frise.
-    const v28Override = `<script id="v28-multilinks-fix">
+    let v28Override = `<script id="v28-multilinks-fix">
 parseLinksCell = function(ws,r,c,cellText){
   const cell=ws[XLSX.utils.encode_cell({r,c})];
   const nativeUrl=(cell && cell.l && cell.l.Target) ? cell.l.Target.trim() : '';
@@ -289,12 +290,13 @@ parseLinksCell = function(ws,r,c,cellText){
   return links;
 };
 <\/script>`;
+    v28Override = v28Override.replaceAll('<\\/script>', scriptEnd);
     if(!source.includes('</head>')||!source.includes('</body>'))throw new Error('Structure HTML de la version 2.7 non reconnue.');
     source=source.replace('</head>',learningCSS+'\n</head>');
     source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
     document.open();document.write(source);document.close();
   }catch(error){
-    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.1 : '+error.message;
+    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.2 : '+error.message;
     console.error(error);
   }
 })();
