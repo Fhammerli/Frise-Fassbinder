@@ -152,14 +152,39 @@ async function loadURL(url,type){
   try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)return false;const raw=await r.text();const rows=parseDelimited(raw);const fallback=url.split('/').pop().replace(/\\.csv$/i,'').replace(/[_-]+/g,' ');addToMap(type==='quiz'?state.quizSets:state.flashSets,type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback));return true;}catch(err){console.warn('Fichier non chargé : '+url,err);return false;}
 }
 function injectButtons(){
-  const people=document.querySelector('.people-index-button');
-  const films=document.querySelector('.film-index-button');
-  const anchor=people||films;
-  if(!anchor)return setTimeout(injectButtons,80);
-  let bar=anchor.closest('.learning-tools');
-  if(!bar){bar=document.createElement('div');bar.className='learning-tools';anchor.parentNode.insertBefore(bar,anchor);if(people)bar.appendChild(people);if(films)bar.appendChild(films);}
-  if(!document.getElementById('quizOpen')){const b=document.createElement('button');b.type='button';b.id='quizOpen';b.className='learning-tool-button';b.textContent='Quiz';b.addEventListener('click',openQuiz);bar.appendChild(b);}
-  if(!document.getElementById('flashOpen')){const b=document.createElement('button');b.type='button';b.id='flashOpen';b.className='learning-tool-button';b.textContent='Flashcards';b.addEventListener('click',openFlash);bar.appendChild(b);}
+  let bar=document.querySelector('.module-buttons');
+  if(!bar){
+    const header=document.querySelector('header');
+    if(!header)return setTimeout(injectButtons,100);
+    bar=document.createElement('div');
+    bar.className='module-buttons learning-tools';
+    const legend=header.querySelector('.legend');
+    header.insertBefore(bar,legend||null);
+  } else {
+    bar.classList.add('learning-tools');
+  }
+
+  let quiz=document.getElementById('quizOpen');
+  if(!quiz){
+    quiz=document.createElement('button');
+    quiz.type='button';
+    quiz.id='quizOpen';
+    quiz.className='learning-tool-button';
+    quiz.textContent='Quiz';
+    bar.appendChild(quiz);
+  }
+  quiz.onclick=openQuiz;
+
+  let flash=document.getElementById('flashOpen');
+  if(!flash){
+    flash=document.createElement('button');
+    flash.type='button';
+    flash.id='flashOpen';
+    flash.className='learning-tool-button';
+    flash.textContent='Flashcards';
+    bar.appendChild(flash);
+  }
+  flash.onclick=openFlash;
 }
 function openDrawer(){drawer.classList.add('open');overlay.classList.add('open');drawer.setAttribute('aria-hidden','false');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
 function closeDrawer(){drawer.classList.remove('open');overlay.classList.remove('open');drawer.setAttribute('aria-hidden','true');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';}
@@ -201,6 +226,21 @@ injectButtons();
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
     source=source.replaceAll('Version 2.7','Version 2.9');
+
+    // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
+    source=source.replace(
+      /(<div class="module-buttons">[\s\S]*?<\/div>)/,
+      function(block){
+        if(block.includes('id="quizOpen"')) return block;
+        return block.replace(
+          '</div>',
+          '<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button>'+
+          '<button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button>'+
+          '</div>'
+        );
+      }
+    );
+
     // V2.8 conservée : lecture robuste de plusieurs liens dans une cellule de la frise.
     const v28Override = `<script id="v28-multilinks-fix">
 parseLinksCell = function(ws,r,c,cellText){
