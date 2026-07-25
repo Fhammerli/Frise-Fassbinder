@@ -3,475 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 3.6</title>
+<title>Chargement de Fassbinder Explorer — Version 3.1</title>
 </head>
 <body>
-<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.6…</p>
+<p id="v31-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.1…</p>
 <script>
-(async function loadVersion30(){
-  const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
+(async function loadVersion31(){
+  'use strict';
+  const sourceUrl='https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
+  const scriptEnd='<'+'/script>';
 
-  const learningCSS = String.raw`
-<style id="learning-tools-style">
-  .learning-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:22px;}
-  .learning-tools .people-index-button,.learning-tools .film-index-button,.learning-tool-button{
-    margin-top:0;display:inline-flex;align-items:center;gap:9px;padding:10px 15px;
-    border:1px solid #C7D4DE;border-radius:999px;background:#fff;color:#1D3448;
-    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;
-    cursor:pointer;box-shadow:0 5px 16px rgba(20,38,52,.06);
-  }
-  .learning-tool-button:hover{border-color:var(--accent);color:var(--accent-deep);}
-  .learning-tool-button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
-  .learning-overlay{position:fixed;inset:0;z-index:1199;background:rgba(14,27,38,.44);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s ease;}
-  .learning-overlay.open{opacity:1;pointer-events:auto;}
-  .learning-drawer{position:fixed;z-index:1200;top:0;right:0;height:100vh;width:min(720px,96vw);background:#fff;box-shadow:-18px 0 55px rgba(18,32,45,.22);transform:translateX(102%);transition:transform .25s ease;overflow-y:auto;padding:28px 32px 44px;}
-  .learning-drawer.open{transform:translateX(0);}
-  .learning-close{position:sticky;top:0;margin-left:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #DCE3E8;border-radius:50%;background:#fff;color:#243A4B;font-size:23px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(22,40,54,.08);z-index:2;}
-  .learning-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:18px 0 8px;}
-  .learning-drawer h2{font-family:'Oswald',sans-serif;font-size:36px;line-height:1.08;margin:0;color:#1D3448;}
-  .learning-intro{color:#667481;font-size:15px;line-height:1.6;margin:10px 0 22px;}
-  .learning-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 22px;padding:14px;border:1px solid #DDE5EB;border-radius:12px;background:#F7F9FB;}
-  .learning-toolbar select,.learning-toolbar button,.learning-toolbar label{font-family:'IBM Plex Mono',monospace;font-size:11px;}
-  .learning-toolbar select{min-width:210px;max-width:100%;padding:9px 34px 9px 11px;border:1px solid #CAD5DE;border-radius:8px;background:#fff;color:#1D3448;}
-  .learning-action{padding:9px 13px;border:1px solid #CAD5DE;border-radius:999px;background:#fff;color:#1D3448;cursor:pointer;}
-  .learning-action.primary{border-color:var(--accent);background:var(--accent);color:#fff;}
-  .learning-file-label{padding:9px 13px;border:1px dashed #AEBCC7;border-radius:999px;background:#fff;color:#536674;cursor:pointer;}
-  .learning-file-label input{display:none;}
-  .learning-status{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6A7883;width:100%;}
-  .learning-status.err{color:var(--err);}.learning-status.ok{color:var(--ok);}
-  .quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;margin-bottom:9px;}
-  .quiz-card{border:1px solid #DCE4EA;border-top:5px solid var(--accent);border-radius:14px;background:#fff;padding:24px;box-shadow:0 10px 28px rgba(24,33,43,.06);}
-  .quiz-question{font-size:20px;line-height:1.45;margin:0 0 18px;color:#1D2B36;}
-  .quiz-options{display:grid;gap:10px;}
-  .quiz-option{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;padding:13px 14px;border:1px solid #D7E0E7;border-radius:10px;background:#F9FBFC;color:#253745;cursor:pointer;font:inherit;line-height:1.45;}
-  .quiz-option:hover{border-color:#96A9B7;background:#fff;}.quiz-option.correct{border-color:#2E7D5B;background:#EDF8F2;}.quiz-option.wrong{border-color:#B34A3C;background:#FFF1EF;}
-  .quiz-option-letter{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:#526876;flex:none;margin-top:3px;}
-  .quiz-feedback{margin-top:16px;padding:14px 16px;border-left:4px solid #315D8A;background:#EEF5FA;border-radius:0 9px 9px 0;line-height:1.55;}
-  .quiz-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px;}
-  .quiz-summary{padding:22px;border:1px solid #DCE4EA;border-radius:14px;background:#F7F9FB;text-align:center;}
-  .quiz-score{font-family:'Oswald',sans-serif;font-size:42px;color:var(--accent);margin:4px 0;}
-  .flashcard-wrap{perspective:1200px;margin:6px 0 18px;}
-  .flashcard{position:relative;min-height:330px;transform-style:preserve-3d;transition:transform .5s ease;cursor:pointer;}
-  .flashcard.flipped{transform:rotateY(180deg);}
-  .flash-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid #DCE4EA;border-top:5px solid #315D8A;border-radius:16px;background:#fff;box-shadow:0 14px 34px rgba(24,33,43,.09);padding:30px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
-  .flash-face.back{transform:rotateY(180deg);border-top-color:var(--accent);background:#FFF8F3;}
-  .flash-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#687885;margin-bottom:16px;}
-  .flash-text{font-size:23px;line-height:1.45;color:#1D2B36;white-space:pre-line;}
-  .flash-hint{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#85919A;margin-top:20px;}
-  .flash-controls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;}
-  .flash-counter{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;min-width:96px;text-align:center;}
-  .learning-empty{padding:22px;border:1px dashed #B9C5CE;border-radius:12px;background:#F7F9FB;color:#60717E;line-height:1.6;}
-  @media(max-width:720px){.learning-drawer{padding:20px 18px 36px}.learning-drawer h2{font-size:31px}.flashcard{min-height:300px}.flash-face{padding:23px}.flash-text{font-size:20px}.quiz-card{padding:19px}}
+  const extensionCSS=String.raw`
+<style id="v31-extension-style">
+.learning-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:22px}
+.learning-tools .people-index-button,.learning-tools .film-index-button,.learning-tool-button{margin-top:0;display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid #C7D4DE;border-radius:999px;background:#fff;color:#1D3448;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;cursor:pointer;box-shadow:0 5px 16px rgba(20,38,52,.06)}
+.learning-tool-button:hover{border-color:var(--accent);color:var(--accent-deep)}
+.learning-tool-button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.learning-overlay,.diagnostic-overlay{position:fixed;inset:0;z-index:1199;background:rgba(14,27,38,.44);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s ease}
+.learning-overlay.open,.diagnostic-overlay.open{opacity:1;pointer-events:auto}
+.learning-drawer,.diagnostic-drawer{position:fixed;z-index:1200;top:0;right:0;height:100vh;width:min(720px,96vw);background:#fff;box-shadow:-18px 0 55px rgba(18,32,45,.22);transform:translateX(102%);transition:transform .25s ease;overflow-y:auto;padding:28px 32px 44px}
+.learning-drawer.open,.diagnostic-drawer.open{transform:translateX(0)}
+.learning-close,.diagnostic-close{position:sticky;top:0;margin-left:auto;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #DCE3E8;border-radius:50%;background:#fff;color:#243A4B;font-size:23px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(22,40,54,.08);z-index:2}
+.learning-kicker,.diagnostic-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:18px 0 8px}
+.learning-drawer h2,.diagnostic-drawer h2{font-family:'Oswald',sans-serif;font-size:36px;line-height:1.08;margin:0;color:#1D3448}
+.learning-intro,.diagnostic-intro{color:#667481;font-size:15px;line-height:1.6;margin:10px 0 22px}
+.learning-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 22px;padding:14px;border:1px solid #DDE5EB;border-radius:12px;background:#F7F9FB}
+.learning-toolbar select,.learning-toolbar button{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.learning-toolbar select{min-width:210px;max-width:100%;padding:9px 34px 9px 11px;border:1px solid #CAD5DE;border-radius:8px;background:#fff;color:#1D3448}
+.learning-action{padding:9px 13px;border:1px solid #CAD5DE;border-radius:999px;background:#fff;color:#1D3448;cursor:pointer}
+.learning-action.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;margin-bottom:9px}
+.quiz-card{border:1px solid #DCE4EA;border-top:5px solid var(--accent);border-radius:14px;background:#fff;padding:24px;box-shadow:0 10px 28px rgba(24,33,43,.06)}
+.quiz-question{font-size:20px;line-height:1.45;margin:0 0 18px;color:#1D2B36}
+.quiz-options{display:grid;gap:10px}
+.quiz-option{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;padding:13px 14px;border:1px solid #D7E0E7;border-radius:10px;background:#F9FBFC;color:#253745;cursor:pointer;font:inherit;line-height:1.45}
+.quiz-option:hover{border-color:#96A9B7;background:#fff}.quiz-option.correct{border-color:#2E7D5B;background:#EDF8F2}.quiz-option.wrong{border-color:#B34A3C;background:#FFF1EF}
+.quiz-option-letter{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:#526876;flex:none;margin-top:3px}
+.quiz-feedback{margin-top:16px;padding:14px 16px;border-left:4px solid #315D8A;background:#EEF5FA;border-radius:0 9px 9px 0;line-height:1.55}
+.quiz-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.quiz-summary{padding:22px;border:1px solid #DCE4EA;border-radius:14px;background:#F7F9FB;text-align:center}
+.quiz-score{font-family:'Oswald',sans-serif;font-size:42px;color:var(--accent);margin:4px 0}
+.flashcard-wrap{perspective:1200px;margin:6px 0 18px}.flashcard{position:relative;min-height:330px;transform-style:preserve-3d;transition:transform .5s ease;cursor:pointer}.flashcard.flipped{transform:rotateY(180deg)}
+.flash-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid #DCE4EA;border-top:5px solid #315D8A;border-radius:16px;background:#fff;box-shadow:0 14px 34px rgba(24,33,43,.09);padding:30px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}.flash-face.back{transform:rotateY(180deg);border-top-color:var(--accent);background:#FFF8F3}
+.flash-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#687885;margin-bottom:16px}.flash-text{font-size:23px;line-height:1.45;color:#1D2B36;white-space:pre-line}.flash-hint{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#85919A;margin-top:20px}.flash-controls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}.flash-counter{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;min-width:96px;text-align:center}
+.learning-empty{padding:22px;border:1px dashed #B9C5CE;border-radius:12px;background:#F7F9FB;color:#60717E;line-height:1.6}
+.diagnostic-table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}.diagnostic-table th,.diagnostic-table td{padding:10px 8px;border-bottom:1px solid #E2E8EC;text-align:left;vertical-align:top}.diagnostic-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#60717E}.diag-ok{color:#2E7D5B;font-weight:600}.diag-warn{color:#9A6700;font-weight:600}.diag-error{color:#B34A3C;font-weight:600}.diagnostic-note{margin-top:20px;padding:14px 16px;border-left:4px solid #315D8A;background:#EEF5FA;line-height:1.55}.diagnostic-trigger{display:none}
+@media(max-width:720px){.learning-drawer,.diagnostic-drawer{padding:20px 18px 36px}.learning-drawer h2,.diagnostic-drawer h2{font-size:31px}.flashcard{min-height:300px}.flash-face{padding:23px}.flash-text{font-size:20px}.quiz-card{padding:19px}}
 </style>`;
 
-  const learningHTML = String.raw`
+  const extensionHTML=String.raw`
 <div class="learning-overlay" id="learningOverlay" aria-hidden="true"></div>
 <aside class="learning-drawer" id="learningDrawer" aria-hidden="true" aria-label="Outils de révision">
   <button type="button" class="learning-close" id="learningClose" aria-label="Fermer">×</button>
   <div id="learningContent"></div>
+</aside>
+<div class="diagnostic-overlay" id="diagnosticOverlay" aria-hidden="true"></div>
+<aside class="diagnostic-drawer" id="diagnosticDrawer" aria-hidden="true" aria-label="État des données">
+  <button type="button" class="diagnostic-close" id="diagnosticClose" aria-label="Fermer">×</button>
+  <p class="diagnostic-kicker">Mode enseignant</p>
+  <h2>État des données</h2>
+  <p class="diagnostic-intro">Ce panneau contrôle la disponibilité des fichiers attendus. Il s’ouvre avec Ctrl + Alt + D ou avec le paramètre <code>?admin=1</code>.</p>
+  <div id="diagnosticContent"><div class="learning-empty">Contrôle en cours…</div></div>
 </aside>`;
 
-  let learningJS = String.raw`
-<script id="learning-tools-script">
+  let extensionJS=String.raw`
+<script id="v31-extension-script">
 (function(){
 'use strict';
-const DEFAULT_QUIZ_FILES=[
+const QUIZ_FILES=[
   {file:'RWF_Quiz.csv',label:'Quiz œuvre'},
   {file:'RWF_Quiz2.csv',label:'Quiz histoire de l’Allemagne'},
   {file:'RWF-Quiz3.csv',label:'Quiz histoire du Nouveau cinéma allemand'}
 ];
-const DEFAULT_FLASHCARD_FILES=['RWF_Flashcards.csv'];
-const state={quizSets:new Map(),flashSets:new Map(),quiz:null,flash:null};
+const FLASH_FILES=[{file:'RWF_Flashcards.csv',label:'Flashcards'}];
+const DATA_FILES=[
+  {file:'RWF_Frise.xlsx',label:'Frise',kind:'xlsx'},
+  {file:'RWF_Films.xlsx',label:'Films',kind:'xlsx'},
+  {file:'RWF_Entourage.xlsx',label:'Entourage',kind:'xlsx'}
+];
+const state={quizSets:new Map(),flashSets:new Map(),quiz:null,flash:null,fileStatus:new Map()};
 const overlay=document.getElementById('learningOverlay');
 const drawer=document.getElementById('learningDrawer');
 const content=document.getElementById('learningContent');
 const closeBtn=document.getElementById('learningClose');
-const normKey=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const diagOverlay=document.getElementById('diagnosticOverlay');
+const diagDrawer=document.getElementById('diagnosticDrawer');
+const diagContent=document.getElementById('diagnosticContent');
+const diagClose=document.getElementById('diagnosticClose');
 const text=v=>v==null?'':String(v).trim();
+const normKey=s=>text(s).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/œ/g,'oe').toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9]+/g,' ').trim();
 const escapeHTML=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function field(row,aliases){
   const entries=Object.entries(row);
-
-  // Priorité à la correspondance exacte des en-têtes.
-  // Cela distingue impérativement Option A, Option B, Option C et Option D.
-  for(const alias of aliases){
-    const exact=entries.find(([key])=>text(key).toLowerCase()===text(alias).toLowerCase());
-    if(exact&&text(exact[1]))return text(exact[1]);
-  }
-
-  // Repli tolérant pour les accents et variantes typographiques.
-  for(const alias of aliases){
-    const target=normKey(alias);
-    const found=entries.find(([key])=>normKey(key)===target);
-    if(found&&text(found[1]))return text(found[1]);
-  }
+  for(const alias of aliases){const exact=entries.find(([k])=>text(k).toLowerCase()===text(alias).toLowerCase());if(exact&&text(exact[1]))return text(exact[1]);}
+  for(const alias of aliases){const target=normKey(alias);const found=entries.find(([k])=>normKey(k)===target);if(found&&text(found[1]))return text(found[1]);}
   return '';
 }
 function parseDelimited(raw){
-  if(!window.XLSX) throw new Error('Le lecteur CSV n’est pas disponible.');
-  let cleaned=String(raw||'').replace(/^\uFEFF/,'');
-  const lines=cleaned.split(/\r?\n/);
-  // Certains exports NotebookLM ajoutent le nom du fichier avant l'en-tête Front;Back.
-  if(lines.length>1 && !/[;,\t]/.test(lines[0]) && /^(front|recto)[;,\t](back|verso)/i.test(lines[1].trim())){
-    cleaned=lines.slice(1).join('\n');
-  }
+  if(!window.XLSX)throw new Error('Le lecteur CSV n’est pas disponible.');
+  let cleaned=String(raw||'').replace(/^\\uFEFF/,'');
+  const lines=cleaned.split(/\\r?\\n/);
+  if(lines.length>1&&!/[;,\\t]/.test(lines[0])&&/^(front|recto)[;,\\t](back|verso)/i.test(lines[1].trim()))cleaned=lines.slice(1).join('\\n');
   const wb=XLSX.read(cleaned,{type:'string',raw:false});
-  const ws=wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
 }
-function splitOptions(value){return text(value).split(/\\s*(?:\\||;|\\n)\\s*/).map(text).filter(Boolean);}
 function answerIndex(answer,options){
-  const a=text(answer); if(!a)return -1;
-  const letter=a.match(/^\s*([A-Za-z])(?:\s*[.):-]|\s+)/);
-  if(letter){const i=letter[1].toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
+  const a=text(answer);if(!a)return-1;
+  const letter=a.match(/^\\s*([A-Za-z])(?:\\s*[.):-]|\\s+)/);if(letter){const i=letter[1].toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
   if(/^[A-Za-z]$/.test(a)){const i=a.toUpperCase().charCodeAt(0)-65;if(i>=0&&i<options.length)return i;}
-  const number=a.match(/^\s*(\d+)(?:\s*[.):-]|\s+)/);
-  if(number){const i=Number(number[1])-1;if(i>=0&&i<options.length)return i;}
-  if(/^\d+$/.test(a)){const i=Number(a)-1;if(i>=0&&i<options.length)return i;}
-  const exact=options.findIndex(o=>normKey(o)===normKey(a));
-  if(exact>=0)return exact;
-  return options.findIndex(o=>normKey(a).endsWith(normKey(o)));
+  const number=a.match(/^\\s*(\\d+)(?:\\s*[.):-]|\\s+)/);if(number){const i=Number(number[1])-1;if(i>=0&&i<options.length)return i;}
+  if(/^\\d+$/.test(a)){const i=Number(a)-1;if(i>=0&&i<options.length)return i;}
+  return options.findIndex(o=>normKey(o)===normKey(a));
 }
-function shuffledCopy(items){
-  const copy=items.slice();
-  for(let i=copy.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [copy[i],copy[j]]=[copy[j],copy[i]];
-  }
-  return copy;
-}
+function shuffledCopy(items){const copy=items.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
 function quizRows(rows,fallback){
   const out=[];
   rows.forEach((row,i)=>{
-    const question=field(row,['Question','Enoncé','Énoncé','Intitulé']);
-    if(!question)return;
-
-    const group=field(row,['Quiz','Quizz','Groupe','Série','Serie','Thème','Theme'])||fallback;
-
-    // Le format NotebookLM comporte exactement quatre colonnes :
-    // Option A, Option B, Option C et Option D.
-    const options=[
-      field(row,['Option A','Réponse A','Reponse A','Choix A']),
-      field(row,['Option B','Réponse B','Reponse B','Choix B']),
-      field(row,['Option C','Réponse C','Reponse C','Choix C']),
-      field(row,['Option D','Réponse D','Reponse D','Choix D'])
-    ];
-
-    // Ne jamais utiliser la colonne « # » comme proposition de réponse.
-    if(options.some(option=>!option)){
-      console.warn('Question ignorée : les quatre options A à D sont requises, ligne '+(i+2),row);
-      return;
-    }
-
-    const answer=field(row,['Correct Answer','Bonne réponse','Bonne reponse','Réponse correcte','Reponse correcte','Correct','Solution']);
-    const correct=answerIndex(answer,options);
-
-    if(correct<0){
-      console.warn('Question ignorée : Correct Answer non reconnue, ligne '+(i+2),row);
-      return;
-    }
-
-    out.push({
-      group,
-      question,
-      options,
-      correct,
-      explanation:field(row,['Rationale','Explication','Commentaire','Justification','Correction']),
-      category:field(row,['Catégorie','Categorie','Notion','Chapitre']),
-      hint:field(row,['Hint','Indice','Aide'])
-    });
+    const question=field(row,['Question','Enoncé','Énoncé','Intitulé']);if(!question)return;
+    const options=[field(row,['Option A','Réponse A','Reponse A','Choix A']),field(row,['Option B','Réponse B','Reponse B','Choix B']),field(row,['Option C','Réponse C','Reponse C','Choix C']),field(row,['Option D','Réponse D','Reponse D','Choix D'])];
+    if(options.some(o=>!o)||new Set(options.map(normKey)).size!==4){console.warn('Question ignorée : quatre options distinctes sont requises, ligne '+(i+2));return;}
+    const correct=answerIndex(field(row,['Correct Answer','Bonne réponse','Bonne reponse','Réponse correcte','Reponse correcte','Correct','Solution']),options);if(correct<0){console.warn('Question ignorée : réponse correcte non reconnue, ligne '+(i+2));return;}
+    out.push({group:fallback,question,options,correct,explanation:field(row,['Rationale','Explication','Commentaire','Justification','Correction']),category:field(row,['Catégorie','Categorie','Notion','Chapitre']),hint:field(row,['Hint','Indice','Aide'])});
   });
   return out;
 }
-function flashRows(rows,fallback){
-  const out=[];
-  rows.forEach(row=>{
-    // Le fichier RWF_Flashcards.csv utilise les en-têtes Front et Back.
-    const front=field(row,['Front','Recto','Question','Terme','Face A','Avant']);
-    const back=field(row,['Back','Verso','Réponse','Reponse','Définition','Definition','Face B','Arrière','Arriere']);
-    if(!front||!back)return;
-    out.push({
-      group:field(row,['Jeu','Deck','Paquet','Groupe','Série','Serie','Thème','Theme'])||fallback,
-      front,
-      back,
-      category:field(row,['Catégorie','Categorie','Notion','Chapitre']),
-      hint:field(row,['Hint','Indice','Aide'])
-    });
-  });
-  return out;
-}
+function flashRows(rows,fallback){const out=[];rows.forEach(row=>{const front=field(row,['Front','Recto','Question','Terme','Face A','Avant']);const back=field(row,['Back','Verso','Réponse','Reponse','Définition','Definition','Face B','Arrière','Arriere']);if(front&&back)out.push({group:field(row,['Jeu','Deck','Paquet','Groupe','Série','Serie','Thème','Theme'])||fallback,front,back,category:field(row,['Catégorie','Categorie','Notion','Chapitre'])});});return out;}
 function addToMap(map,items){items.forEach(item=>{if(!map.has(item.group))map.set(item.group,[]);map.get(item.group).push(item);});}
-async function loadURL(source,type){
-  const url=typeof source==='string'?source:source.file;
-  const publicLabel=typeof source==='string'?'':source.label;
-  try{
-    const r=await fetch(url,{cache:'no-store'});
-    if(!r.ok)return false;
-    const raw=await r.text();
-    const rows=parseDelimited(raw);
-    const fallback=publicLabel||url.split('/').pop().replace(/\.csv$/i,'').replace(/[_-]+/g,' ');
-    let items=type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback);
-    if(type==='quiz'&&publicLabel){
-      items=items.map(item=>({...item,group:publicLabel}));
-    }
-    if(!items.length)return false;
-    addToMap(type==='quiz'?state.quizSets:state.flashSets,items);
-    return true;
-  }catch(err){
-    console.warn('Fichier non chargé : '+url,err);
-    return false;
-  }
+async function probeFile(entry){
+  try{const response=await fetch(entry.file,{cache:'no-store'});if(!response.ok){state.fileStatus.set(entry.file,{...entry,status:'absent',detail:'HTTP '+response.status});return null;}const buffer=await response.arrayBuffer();state.fileStatus.set(entry.file,{...entry,status:'ok',detail:Math.max(1,Math.round(buffer.byteLength/1024))+' Ko'});return buffer;}catch(error){state.fileStatus.set(entry.file,{...entry,status:'error',detail:error.message});return null;}
+}
+async function loadLearningFile(entry,type){
+  const buffer=await probeFile(entry);if(!buffer)return false;
+  try{const raw=new TextDecoder('utf-8').decode(buffer);const rows=parseDelimited(raw);const items=type==='quiz'?quizRows(rows,entry.label):flashRows(rows,entry.label);if(!items.length){state.fileStatus.set(entry.file,{...entry,status:'warn',detail:'aucune ligne reconnue'});return false;}addToMap(type==='quiz'?state.quizSets:state.flashSets,items);const previous=state.fileStatus.get(entry.file);state.fileStatus.set(entry.file,{...previous,detail:items.length+' élément'+(items.length>1?'s':'')});return true;}catch(error){state.fileStatus.set(entry.file,{...entry,status:'error',detail:error.message});return false;}
 }
 function injectButtons(){
-  let bar=document.querySelector('.module-buttons');
-  if(!bar){
-    const header=document.querySelector('header');
-    if(!header)return setTimeout(injectButtons,100);
-    bar=document.createElement('div');
-    bar.className='module-buttons learning-tools';
-    const legend=header.querySelector('.legend');
-    header.insertBefore(bar,legend||null);
-  } else {
-    bar.classList.add('learning-tools');
-  }
-
-  let quiz=document.getElementById('quizOpen');
-  if(!quiz){
-    quiz=document.createElement('button');
-    quiz.type='button';
-    quiz.id='quizOpen';
-    quiz.className='learning-tool-button';
-    quiz.textContent='Quiz';
-    quiz.setAttribute('onclick','window.__openFassbinderQuiz && window.__openFassbinderQuiz()');
-    bar.appendChild(quiz);
-  }
-  quiz.onclick=openQuiz;
-
-  let flash=document.getElementById('flashOpen');
-  if(!flash){
-    flash=document.createElement('button');
-    flash.type='button';
-    flash.id='flashOpen';
-    flash.className='learning-tool-button';
-    flash.textContent='Flashcards';
-    flash.setAttribute('onclick','window.__openFassbinderFlashcards && window.__openFassbinderFlashcards()');
-    bar.appendChild(flash);
-  }
-  flash.onclick=openFlash;
+  let bar=document.querySelector('.module-buttons');if(!bar){const header=document.querySelector('header');if(!header)return setTimeout(injectButtons,100);bar=document.createElement('div');bar.className='module-buttons learning-tools';header.appendChild(bar);}else bar.classList.add('learning-tools');
+  if(!document.getElementById('quizOpen'))bar.insertAdjacentHTML('beforeend','<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button>');
+  if(!document.getElementById('flashOpen'))bar.insertAdjacentHTML('beforeend','<button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button>');
+  document.getElementById('quizOpen').onclick=openQuiz;document.getElementById('flashOpen').onclick=openFlash;
+  if(new URLSearchParams(location.search).get('admin')==='1'&&!document.getElementById('diagnosticOpen')){bar.insertAdjacentHTML('beforeend','<button class="learning-tool-button" id="diagnosticOpen" type="button">État des données</button>');document.getElementById('diagnosticOpen').onclick=openDiagnostic;}
 }
-function openDrawer(){drawer.classList.add('open');overlay.classList.add('open');drawer.setAttribute('aria-hidden','false');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
-function closeDrawer(){drawer.classList.remove('open');overlay.classList.remove('open');drawer.setAttribute('aria-hidden','true');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';}
-closeBtn.addEventListener('click',closeDrawer);overlay.addEventListener('click',closeDrawer);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))closeDrawer();});
-function setOptions(select,map){select.innerHTML=[...map.keys()].map(k=>'<option value="'+escapeHTML(k)+'">'+escapeHTML(k)+'</option>').join('');}
-function statusEl(msg,cls=''){return '<div class="learning-status '+cls+'">'+escapeHTML(msg)+'</div>';}
-function quizShell(){
-  content.innerHTML=
-    '<p class="learning-kicker">Réviser et vérifier ses connaissances</p>'+
-    '<h2>Quiz</h2>'+
-    '<p class="learning-intro">Choisissez un quiz thématique. Seuls les quiz dont le fichier CSV est disponible apparaissent dans la liste.</p>'+
-    '<div class="learning-toolbar">'+
-      '<select id="quizSet" aria-label="Choisir un quiz"></select>'+
-      '<button class="learning-action primary" id="quizStart" type="button">Commencer en ordre aléatoire</button>'+
-      '<button class="learning-action" id="quizShuffle" type="button">Remélanger</button>'+
-    '</div>'+
-    '<div id="quizStage"></div>';
-
-  const select=content.querySelector('#quizSet');
-  setOptions(select,state.quizSets);
-
-  const startButton=content.querySelector('#quizStart');
-  const shuffleButton=content.querySelector('#quizShuffle');
-  const hasQuiz=state.quizSets.size>0;
-
-  startButton.disabled=!hasQuiz;
-  shuffleButton.disabled=!hasQuiz;
-  startButton.onclick=()=>startQuiz(select.value,true);
-  shuffleButton.onclick=()=>startQuiz(select.value,true);
-
-  renderQuizEmpty();
-}
-function renderQuizEmpty(){
-  const stage=content.querySelector('#quizStage');
-  if(!stage)return;
-  stage.innerHTML=state.quizSets.size
-    ? '<div class="learning-empty">Sélectionnez un quiz puis cliquez sur « Commencer ».</div>'
-    : '<div class="learning-empty">Aucun quiz n’est actuellement disponible.</div>';
-}
-function startQuiz(name,shuffle=true){const source=state.quizSets.get(name)||[];const questions=(shuffle?shuffledCopy(source):source.slice()).map(q=>({...q,options:[...q.options]}));state.quiz={name,questions,index:0,score:0,answered:false,shuffle};renderQuizQuestion();}
-function renderQuizQuestion(){
-  const stage=content.querySelector('#quizStage'),qz=state.quiz;
-  if(!stage||!qz)return;
-  if(qz.index>=qz.questions.length)return renderQuizSummary();
-
-  const q=qz.questions[qz.index];
-  const hintBlock=q.hint
-    ? '<div class="quiz-hint-zone"><button class="learning-action" type="button" id="quizHintButton">Afficher l’indice</button><div id="quizHint" class="quiz-feedback" hidden>'+escapeHTML(q.hint)+'</div></div>'
-    : '';
-
-  stage.innerHTML=
-    '<div class="quiz-progress">Question '+(qz.index+1)+' / '+qz.questions.length+(q.category?' · '+escapeHTML(q.category):'')+'</div>'+
-    '<article class="quiz-card">'+
-      '<h3 class="quiz-question">'+escapeHTML(q.question)+'</h3>'+
-      hintBlock+
-      '<div class="quiz-options">'+q.options.map((o,i)=>
-        '<button class="quiz-option" type="button" data-answer="'+i+'">'+
-          '<span class="quiz-option-letter">'+String.fromCharCode(65+i)+'</span>'+
-          '<span>'+escapeHTML(o)+'</span>'+
-        '</button>'
-      ).join('')+'</div>'+
-      '<div id="quizFeedback"></div>'+
-      '<div class="quiz-nav">'+
-        '<button class="learning-action" type="button" id="quizRestart">Recommencer</button>'+
-        '<button class="learning-action primary" type="button" id="quizNext" disabled>'+
-          (qz.index===qz.questions.length-1?'Voir le résultat':'Question suivante')+
-        '</button>'+
-      '</div>'+
-    '</article>';
-
-  stage.querySelectorAll('[data-answer]').forEach(btn=>btn.onclick=()=>answerQuiz(Number(btn.dataset.answer)));
-
-  const hintButton=stage.querySelector('#quizHintButton');
-  if(hintButton){
-    hintButton.onclick=()=>{
-      const hint=stage.querySelector('#quizHint');
-      hint.hidden=false;
-      hintButton.hidden=true;
-    };
-  }
-
-  stage.querySelector('#quizRestart').onclick=()=>startQuiz(qz.name,qz.shuffle);
-  stage.querySelector('#quizNext').onclick=()=>{
-    qz.index++;
-    qz.answered=false;
-    renderQuizQuestion();
-  };
-}
-function answerQuiz(choice){const qz=state.quiz;if(!qz||qz.answered)return;qz.answered=true;const q=qz.questions[qz.index];if(choice===q.correct)qz.score++;content.querySelectorAll('[data-answer]').forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add('correct');else if(i===choice)b.classList.add('wrong');});content.querySelector('#quizFeedback').innerHTML='<div class="quiz-feedback"><strong>'+(choice===q.correct?'Bonne réponse.':'Réponse incorrecte.')+'</strong>'+(q.explanation?'<br>'+escapeHTML(q.explanation):'')+'</div>';content.querySelector('#quizNext').disabled=false;}
-function renderQuizSummary(){const stage=content.querySelector('#quizStage'),qz=state.quiz;const pct=Math.round((qz.score/qz.questions.length)*100);stage.innerHTML='<div class="quiz-summary"><p class="learning-kicker">Résultat</p><div class="quiz-score">'+qz.score+' / '+qz.questions.length+'</div><p>'+pct+' % de réponses correctes</p><button class="learning-action primary" type="button" id="quizAgain">Recommencer ce quiz</button></div>';stage.querySelector('#quizAgain').onclick=()=>startQuiz(qz.name,qz.shuffle);}
-function flashShell(){
-  content.innerHTML=
-    '<p class="learning-kicker">Mémoriser par rappel actif</p>'+
-    '<h2>Flashcards</h2>'+
-    '<p class="learning-intro">Cliquez sur la carte pour la retourner. Les lignes sont regroupées selon la colonne « Jeu » ou « Deck » ; une nouvelle valeur crée automatiquement un nouveau paquet.</p>'+
-    '<div class="learning-toolbar">'+
-      '<select id="flashSet" aria-label="Choisir un jeu de flashcards"></select>'+
-      '<button class="learning-action primary" id="flashStart" type="button">Ouvrir en ordre aléatoire</button>'+
-      '<button class="learning-action" id="flashShuffle" type="button">Remélanger</button>'+
-      '<div id="flashStatus" class="learning-status"></div>'+
-    '</div>'+
-    '<div id="flashStage"></div>';
-
-  const select=content.querySelector('#flashSet');
-  setOptions(select,state.flashSets);
-
-  const startButton=content.querySelector('#flashStart');
-  const shuffleButton=content.querySelector('#flashShuffle');
-  const hasFlashcards=state.flashSets.size>0;
-
-  startButton.disabled=!hasFlashcards;
-  shuffleButton.disabled=!hasFlashcards;
-
-  startButton.onclick=()=>startFlash(select.value,true);
-  shuffleButton.onclick=()=>startFlash(select.value,true);
-
-  renderFlashEmpty();
-}
-function renderFlashEmpty(){
-  const stage=content.querySelector('#flashStage');
-  if(!stage)return;
-  stage.innerHTML=state.flashSets.size
-    ? '<div class="learning-empty">Sélectionnez un jeu puis cliquez sur « Ouvrir ».</div>'
-    : '<div class="learning-empty">Aucun jeu de flashcards n’est actuellement disponible.</div>';
-}
-function startFlash(name,shuffle=true){const source=state.flashSets.get(name)||[];const cards=(shuffle?shuffledCopy(source):source.slice()).map(c=>({...c}));state.flash={name,cards,index:0,shuffle};renderFlashCard();}
-function renderFlashCard(){const stage=content.querySelector('#flashStage'),fs=state.flash;if(!stage||!fs||!fs.cards.length)return renderFlashEmpty();const c=fs.cards[fs.index];stage.innerHTML='<div class="quiz-progress">'+escapeHTML(fs.name)+(c.category?' · '+escapeHTML(c.category):'')+'</div><div class="flashcard-wrap"><div class="flashcard" id="flashCard" tabindex="0" role="button" aria-label="Retourner la carte"><div class="flash-face front"><div class="flash-label">Question</div><div class="flash-text">'+escapeHTML(c.front)+'</div><div class="flash-hint">Cliquer pour afficher la réponse</div></div><div class="flash-face back"><div class="flash-label">Réponse</div><div class="flash-text">'+escapeHTML(c.back)+'</div><div class="flash-hint">Cliquer pour revenir à la question</div></div></div></div><div class="flash-controls"><button class="learning-action" id="flashPrev" type="button">← Précédente</button><span class="flash-counter">'+(fs.index+1)+' / '+fs.cards.length+'</span><button class="learning-action primary" id="flashNext" type="button">Suivante →</button></div>';
-  const card=stage.querySelector('#flashCard');const flip=()=>card.classList.toggle('flipped');card.onclick=flip;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}};stage.querySelector('#flashPrev').onclick=()=>{fs.index=(fs.index-1+fs.cards.length)%fs.cards.length;renderFlashCard();};stage.querySelector('#flashNext').onclick=()=>{fs.index=(fs.index+1)%fs.cards.length;renderFlashCard();};}
-async function importFiles(files,type){const map=type==='quiz'?state.quizSets:state.flashSets;let added=0,ignored=0;for(const file of files){try{const raw=await file.text();const rows=parseDelimited(raw);const fallback=file.name.replace(/\\.csv$/i,'').replace(/[_-]+/g,' ');const items=type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback);if(items.length){addToMap(map,items);added+=items.length;}else ignored++;}catch(err){console.error(err);ignored++;}}
-  if(type==='quiz'){quizShell();content.querySelector('#quizStatus').textContent=added+' question(s) ajoutée(s)'+(ignored?' · '+ignored+' fichier(s) sans ligne reconnue':'');content.querySelector('#quizStatus').className='learning-status '+(added?'ok':'err');}
-  else{flashShell();content.querySelector('#flashStatus').textContent=added+' carte(s) ajoutée(s)'+(ignored?' · '+ignored+' fichier(s) sans ligne reconnue':'');content.querySelector('#flashStatus').className='learning-status '+(added?'ok':'err');}}
-function openQuiz(){quizShell();openDrawer();}
-function openFlash(){flashShell();openDrawer();}
-
-window.__openFassbinderQuiz=openQuiz;
-window.__openFassbinderFlashcards=openFlash;
-
-document.addEventListener('click',function(event){
-  const quizButton=event.target.closest && event.target.closest('#quizOpen');
-  if(quizButton){
-    event.preventDefault();
-    openQuiz();
-    return;
-  }
-  const flashButton=event.target.closest && event.target.closest('#flashOpen');
-  if(flashButton){
-    event.preventDefault();
-    openFlash();
-  }
-});
-
-Promise.all([...DEFAULT_QUIZ_FILES.map(f=>loadURL(f,'quiz')),...DEFAULT_FLASHCARD_FILES.map(f=>loadURL(f,'flash'))]).finally(injectButtons);
-injectButtons();
+function openDrawer(){drawer.classList.add('open');overlay.classList.add('open');document.body.style.overflow='hidden'}function closeDrawer(){drawer.classList.remove('open');overlay.classList.remove('open');document.body.style.overflow=''}
+function openDiagnostic(){renderDiagnostic();diagDrawer.classList.add('open');diagOverlay.classList.add('open');document.body.style.overflow='hidden'}function closeDiagnostic(){diagDrawer.classList.remove('open');diagOverlay.classList.remove('open');document.body.style.overflow=''}
+closeBtn.onclick=closeDrawer;overlay.onclick=closeDrawer;diagClose.onclick=closeDiagnostic;diagOverlay.onclick=closeDiagnostic;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closeDiagnostic();}if(e.ctrlKey&&e.altKey&&e.key.toLowerCase()==='d'){e.preventDefault();openDiagnostic();}});
+function setOptions(select,map){select.innerHTML=[...map.keys()].map(k=>'<option value="'+escapeHTML(k)+'">'+escapeHTML(k)+'</option>').join('')}
+function quizShell(){content.innerHTML='<p class="learning-kicker">Réviser et vérifier ses connaissances</p><h2>Quiz</h2><p class="learning-intro">Seuls les quiz dont le fichier CSV est disponible apparaissent.</p><div class="learning-toolbar"><select id="quizSet"></select><button class="learning-action primary" id="quizStart">Commencer en ordre aléatoire</button><button class="learning-action" id="quizShuffle">Remélanger</button></div><div id="quizStage"></div>';const select=content.querySelector('#quizSet');setOptions(select,state.quizSets);const has=state.quizSets.size>0;content.querySelector('#quizStart').disabled=!has;content.querySelector('#quizShuffle').disabled=!has;content.querySelector('#quizStart').onclick=()=>startQuiz(select.value);content.querySelector('#quizShuffle').onclick=()=>startQuiz(select.value);content.querySelector('#quizStage').innerHTML=has?'<div class="learning-empty">Sélectionnez un quiz puis cliquez sur « Commencer ».</div>':'<div class="learning-empty">Aucun quiz n’est actuellement disponible.</div>'}
+function startQuiz(name){const questions=shuffledCopy(state.quizSets.get(name)||[]).map(q=>({...q,options:[...q.options]}));state.quiz={name,questions,index:0,score:0,answered:false};renderQuizQuestion()}
+function renderQuizQuestion(){const stage=content.querySelector('#quizStage'),qz=state.quiz;if(!qz||!stage)return;if(qz.index>=qz.questions.length)return renderQuizSummary();const q=qz.questions[qz.index];stage.innerHTML='<div class="quiz-progress">Question '+(qz.index+1)+' / '+qz.questions.length+(q.category?' · '+escapeHTML(q.category):'')+'</div><article class="quiz-card"><h3 class="quiz-question">'+escapeHTML(q.question)+'</h3><div class="quiz-options">'+q.options.map((o,i)=>'<button class="quiz-option" data-answer="'+i+'"><span class="quiz-option-letter">'+String.fromCharCode(65+i)+'</span><span>'+escapeHTML(o)+'</span></button>').join('')+'</div><div id="quizFeedback"></div><div class="quiz-nav"><button class="learning-action" id="quizRestart">Recommencer</button><button class="learning-action primary" id="quizNext" disabled>'+(qz.index===qz.questions.length-1?'Voir le résultat':'Question suivante')+'</button></div></article>';stage.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>answerQuiz(Number(b.dataset.answer)));stage.querySelector('#quizRestart').onclick=()=>startQuiz(qz.name);stage.querySelector('#quizNext').onclick=()=>{qz.index++;qz.answered=false;renderQuizQuestion()}}
+function answerQuiz(choice){const qz=state.quiz;if(!qz||qz.answered)return;qz.answered=true;const q=qz.questions[qz.index];if(choice===q.correct)qz.score++;content.querySelectorAll('[data-answer]').forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add('correct');else if(i===choice)b.classList.add('wrong')});content.querySelector('#quizFeedback').innerHTML='<div class="quiz-feedback"><strong>'+(choice===q.correct?'Bonne réponse.':'Réponse incorrecte.')+'</strong>'+(q.explanation?'<br>'+escapeHTML(q.explanation):'')+'</div>';content.querySelector('#quizNext').disabled=false}
+function renderQuizSummary(){const qz=state.quiz,stage=content.querySelector('#quizStage');const pct=qz.questions.length?Math.round(qz.score/qz.questions.length*100):0;stage.innerHTML='<div class="quiz-summary"><p class="learning-kicker">Résultat</p><div class="quiz-score">'+qz.score+' / '+qz.questions.length+'</div><p>'+pct+' % de réponses correctes</p><button class="learning-action primary" id="quizAgain">Recommencer ce quiz</button></div>';stage.querySelector('#quizAgain').onclick=()=>startQuiz(qz.name)}
+function flashShell(){content.innerHTML='<p class="learning-kicker">Mémoriser par rappel actif</p><h2>Flashcards</h2><p class="learning-intro">Cliquez sur la carte pour la retourner.</p><div class="learning-toolbar"><select id="flashSet"></select><button class="learning-action primary" id="flashStart">Ouvrir en ordre aléatoire</button><button class="learning-action" id="flashShuffle">Remélanger</button></div><div id="flashStage"></div>';const select=content.querySelector('#flashSet');setOptions(select,state.flashSets);const has=state.flashSets.size>0;content.querySelector('#flashStart').disabled=!has;content.querySelector('#flashShuffle').disabled=!has;content.querySelector('#flashStart').onclick=()=>startFlash(select.value);content.querySelector('#flashShuffle').onclick=()=>startFlash(select.value);content.querySelector('#flashStage').innerHTML=has?'<div class="learning-empty">Sélectionnez un jeu puis cliquez sur « Ouvrir ».</div>':'<div class="learning-empty">Aucun jeu de flashcards n’est actuellement disponible.</div>'}
+function startFlash(name){state.flash={name,cards:shuffledCopy(state.flashSets.get(name)||[]),index:0};renderFlashCard()}
+function renderFlashCard(){const stage=content.querySelector('#flashStage'),fs=state.flash;if(!stage||!fs||!fs.cards.length)return;const c=fs.cards[fs.index];stage.innerHTML='<div class="quiz-progress">'+escapeHTML(fs.name)+(c.category?' · '+escapeHTML(c.category):'')+'</div><div class="flashcard-wrap"><div class="flashcard" id="flashCard" tabindex="0" role="button"><div class="flash-face front"><div class="flash-label">Question</div><div class="flash-text">'+escapeHTML(c.front)+'</div><div class="flash-hint">Cliquer pour afficher la réponse</div></div><div class="flash-face back"><div class="flash-label">Réponse</div><div class="flash-text">'+escapeHTML(c.back)+'</div><div class="flash-hint">Cliquer pour revenir à la question</div></div></div></div><div class="flash-controls"><button class="learning-action" id="flashPrev">← Précédente</button><span class="flash-counter">'+(fs.index+1)+' / '+fs.cards.length+'</span><button class="learning-action primary" id="flashNext">Suivante →</button></div>';const card=stage.querySelector('#flashCard');const flip=()=>card.classList.toggle('flipped');card.onclick=flip;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}};stage.querySelector('#flashPrev').onclick=()=>{fs.index=(fs.index-1+fs.cards.length)%fs.cards.length;renderFlashCard()};stage.querySelector('#flashNext').onclick=()=>{fs.index=(fs.index+1)%fs.cards.length;renderFlashCard()}}
+function openQuiz(){quizShell();openDrawer()}function openFlash(){flashShell();openDrawer()}
+function renderDiagnostic(){const ordered=[...DATA_FILES,...QUIZ_FILES,...FLASH_FILES];const rows=ordered.map(entry=>{const result=state.fileStatus.get(entry.file)||{status:'warn',detail:'contrôle en attente'};const cls=result.status==='ok'?'diag-ok':result.status==='absent'?'diag-warn':'diag-error';const label=result.status==='ok'?'Chargé':result.status==='absent'?'Absent':'À vérifier';return '<tr><td>'+escapeHTML(entry.label)+'</td><td><code>'+escapeHTML(entry.file)+'</code></td><td class="'+cls+'">'+label+'</td><td>'+escapeHTML(result.detail||'')+'</td></tr>'}).join('');diagContent.innerHTML='<table class="diagnostic-table"><thead><tr><th>Module</th><th>Fichier</th><th>État</th><th>Détail</th></tr></thead><tbody>'+rows+'</tbody></table><div class="diagnostic-note"><strong>Règle V3.1 :</strong> un quiz absent ne figure pas dans le menu. Une donnée éditoriale manquante ne doit pas empêcher l’ouverture d’une fiche.</div>'}
+window.__openFassbinderQuiz=openQuiz;window.__openFassbinderFlashcards=openFlash;window.__openFassbinderDiagnostic=openDiagnostic;
+Promise.all([...DATA_FILES.map(probeFile),...QUIZ_FILES.map(f=>loadLearningFile(f,'quiz')),...FLASH_FILES.map(f=>loadLearningFile(f,'flash'))]).finally(()=>{injectButtons();renderDiagnostic()});injectButtons();
 })();
 <\/script>`;
-  const scriptEnd='<'+'/script>';
-  learningJS = learningJS.replaceAll('<\\/script>', scriptEnd);
+  extensionJS=extensionJS.replaceAll('<\\/script>',scriptEnd);
 
-  try{
-    const response=await fetch(sourceUrl,{cache:'no-store'});
-    if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
-    let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.6');
-
-    // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
-    source=source.replace(
-      /(<div class="module-buttons">[\s\S]*?<\/div>)/,
-      function(block){
-        if(block.includes('id="quizOpen"')) return block;
-        return block.replace(
-          '</div>',
-          '<button class="learning-tool-button" id="quizOpen" type="button" onclick="window.__openFassbinderQuiz && window.__openFassbinderQuiz()">Quiz</button>'+
-          '<button class="learning-tool-button" id="flashOpen" type="button" onclick="window.__openFassbinderFlashcards && window.__openFassbinderFlashcards()">Flashcards</button>'+
-          '</div>'
-        );
-      }
-    );
-
-    // V2.8 conservée : lecture robuste de plusieurs liens dans une cellule de la frise.
-    let v28Override = `<script id="v28-multilinks-fix">
-parseLinksCell = function(ws,r,c,cellText){
+  let multiLinks=String.raw`
+<script id="v31-multilinks-fix">
+parseLinksCell=function(ws,r,c,cellText){
   const cell=ws[XLSX.utils.encode_cell({r,c})];
-  const nativeUrl=(cell && cell.l && cell.l.Target) ? cell.l.Target.trim() : '';
-  const chunks=(cellText||'').split(/[;\n]/).map(s=>s.trim()).filter(Boolean);
-  if(!chunks.length){
-    if(!nativeUrl) return [];
-    const kind=classifyLinkKind(nativeUrl);
-    return [{url:nativeUrl,kind,customLabel:false,label:defaultLinkLabel(kind,0,1)}];
-  }
+  const nativeUrl=(cell&&cell.l&&cell.l.Target)?cell.l.Target.trim():'';
+  const chunks=(cellText||'').split(/[;\\n]/).map(s=>s.trim()).filter(Boolean);
+  if(!chunks.length){if(!nativeUrl)return[];const kind=classifyLinkKind(nativeUrl);return[{url:nativeUrl,kind,customLabel:false,label:defaultLinkLabel(kind,0,1)}]}
   const links=[];
-  chunks.forEach((chunk,i)=>{
-    const pipeIdx=chunk.indexOf('|');
-    let label='',url='';
-    if(pipeIdx>-1){ label=chunk.slice(0,pipeIdx).trim(); url=chunk.slice(pipeIdx+1).trim(); }
-    else if(/^(https?:\/\/|www\.)/i.test(chunk)){ url=chunk; }
-    else if(i===0 && nativeUrl){ label=chunk; url=nativeUrl; }
-    else { console.warn('Lien non identifié dans la frise : « '+chunk+' ». Utilisez « Libellé|https://adresse » pour les liens supplémentaires.'); return; }
-    if(/^www\./i.test(url)) url='https://'+url;
-    if(!url) return;
-    const kind=classifyLinkKind(url);
-    links.push({url,kind,customLabel:Boolean(label),label:label || defaultLinkLabel(kind,links.length,chunks.length)});
-  });
+  chunks.forEach((chunk,i)=>{const pipe=chunk.indexOf('|');let label='',url='';if(pipe>-1){label=chunk.slice(0,pipe).trim();url=chunk.slice(pipe+1).trim()}else if(/^(https?:\\/\\/|www\\.)/i.test(chunk)){url=chunk}else if(i===0&&nativeUrl){label=chunk;url=nativeUrl}else{console.warn('Lien non identifié : « '+chunk+' ». Utilisez « Libellé|https://adresse ».');return}if(/^www\\./i.test(url))url='https://'+url;if(!url)return;const kind=classifyLinkKind(url);links.push({url,kind,customLabel:Boolean(label),label:label||defaultLinkLabel(kind,links.length,chunks.length)})});
   return links;
 };
 <\/script>`;
-    v28Override = v28Override.replaceAll('<\\/script>', scriptEnd);
-    if(!source.includes('</head>')||!source.includes('</body>'))throw new Error('Structure HTML de la version 2.7 non reconnue.');
-    source=source.replace('</head>',learningCSS+'\n</head>');
-    source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
+  multiLinks=multiLinks.replaceAll('<\\/script>',scriptEnd);
+
+  try{
+    const response=await fetch(sourceUrl,{cache:'no-store'});
+    if(!response.ok)throw new Error('socle inaccessible ('+response.status+')');
+    let source=await response.text();
+    source=source.replaceAll('Version 2.7','Version 3.1');
+    source=source.replace(/(<div class="module-buttons">[\\s\\S]*?<\\/div>)/,block=>block.includes('id="quizOpen"')?block:block.replace('</div>','<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button><button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button></div>'));
+    if(!source.includes('</head>')||!source.includes('</body>'))throw new Error('structure HTML du socle non reconnue');
+    source=source.replace('</head>',extensionCSS+'\n</head>');
+    source=source.replace('</body>',multiLinks+'\n'+extensionHTML+'\n'+extensionJS+'\n</body>');
     document.open();document.write(source);document.close();
-  }catch(error){
-    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.6 : '+error.message;
-    console.error(error);
-  }
+  }catch(error){document.getElementById('v31-loader').textContent='Erreur de chargement de la version 3.1 : '+error.message;console.error(error)}
 })();
 </script>
 </body>
