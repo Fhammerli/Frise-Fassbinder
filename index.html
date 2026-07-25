@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chargement de Fassbinder Explorer — Version 3.2</title>
+<title>Chargement de Fassbinder Explorer — Version 3.3</title>
 </head>
 <body>
-<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.2…</p>
+<p id="v30-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.3…</p>
 <script>
 (async function loadVersion30(){
   const sourceUrl = 'https://raw.githubusercontent.com/Fhammerli/Frise-Fassbinder/43ad86c811f5e1e5841df72d5430a839d53a3450/index.html';
@@ -122,28 +122,60 @@ function shuffledCopy(items){
 function quizRows(rows,fallback){
   const out=[];
   rows.forEach((row,i)=>{
-    const question=field(row,['Question','Enoncé','Énoncé','Intitulé']); if(!question)return;
+    const question=field(row,['Question','Enoncé','Énoncé','Intitulé']);
+    if(!question)return;
+
     const group=field(row,['Quiz','Quizz','Groupe','Série','Serie','Thème','Theme'])||fallback;
-    let options=[];
-    ['Réponse A','Reponse A','Option A','Choix A','A','Réponse B','Reponse B','Option B','Choix B','B','Réponse C','Reponse C','Option C','Choix C','C','Réponse D','Reponse D','Option D','Choix D','D','Réponse E','Reponse E','Option E','Choix E','E'].forEach((name,idx)=>{
-      const v=field(row,[name]); if(v){options[idx%5]=v;}
-    });
-    options=options.filter(Boolean);
-    if(!options.length) options=splitOptions(field(row,['Réponses','Reponses','Options','Choix','Propositions']));
-    const answer=field(row,['Bonne réponse','Bonne reponse','Réponse correcte','Reponse correcte','Correct Answer','Correct','Solution']);
+
+    // Le format NotebookLM comporte exactement quatre colonnes :
+    // Option A, Option B, Option C et Option D.
+    const options=[
+      field(row,['Option A','Réponse A','Reponse A','Choix A']),
+      field(row,['Option B','Réponse B','Reponse B','Choix B']),
+      field(row,['Option C','Réponse C','Reponse C','Choix C']),
+      field(row,['Option D','Réponse D','Reponse D','Choix D'])
+    ];
+
+    // Ne jamais utiliser la colonne « # » comme proposition de réponse.
+    if(options.some(option=>!option)){
+      console.warn('Question ignorée : les quatre options A à D sont requises, ligne '+(i+2),row);
+      return;
+    }
+
+    const answer=field(row,['Correct Answer','Bonne réponse','Bonne reponse','Réponse correcte','Reponse correcte','Correct','Solution']);
     const correct=answerIndex(answer,options);
-    if(options.length<2||correct<0){console.warn('Question ignorée : réponse ou options non reconnues, ligne '+(i+2),row);return;}
-    out.push({group,question,options,correct,explanation:field(row,['Explication','Commentaire','Justification','Correction','Rationale']),category:field(row,['Catégorie','Categorie','Notion','Chapitre']),hint:field(row,['Hint','Indice','Aide'])});
+
+    if(correct<0){
+      console.warn('Question ignorée : Correct Answer non reconnue, ligne '+(i+2),row);
+      return;
+    }
+
+    out.push({
+      group,
+      question,
+      options,
+      correct,
+      explanation:field(row,['Rationale','Explication','Commentaire','Justification','Correction']),
+      category:field(row,['Catégorie','Categorie','Notion','Chapitre']),
+      hint:field(row,['Hint','Indice','Aide'])
+    });
   });
   return out;
 }
 function flashRows(rows,fallback){
   const out=[];
   rows.forEach(row=>{
-    const front=field(row,['Recto','Question','Terme','Face A','Avant']);
-    const back=field(row,['Verso','Réponse','Reponse','Définition','Definition','Face B','Arrière','Arriere']);
+    // Le fichier RWF_Flashcards.csv utilise les en-têtes Front et Back.
+    const front=field(row,['Front','Recto','Question','Terme','Face A','Avant']);
+    const back=field(row,['Back','Verso','Réponse','Reponse','Définition','Definition','Face B','Arrière','Arriere']);
     if(!front||!back)return;
-    out.push({group:field(row,['Jeu','Deck','Paquet','Groupe','Série','Serie','Thème','Theme'])||fallback,front,back,category:field(row,['Catégorie','Categorie','Notion','Chapitre']),hint:field(row,['Hint','Indice','Aide'])});
+    out.push({
+      group:field(row,['Jeu','Deck','Paquet','Groupe','Série','Serie','Thème','Theme'])||fallback,
+      front,
+      back,
+      category:field(row,['Catégorie','Categorie','Notion','Chapitre']),
+      hint:field(row,['Hint','Indice','Aide'])
+    });
   });
   return out;
 }
@@ -202,9 +234,54 @@ function quizShell(){content.innerHTML='<p class="learning-kicker">Réviser et v
 }
 function renderQuizEmpty(){const stage=content.querySelector('#quizStage');if(!stage)return;stage.innerHTML=state.quizSets.size?'<div class="learning-empty">Sélectionnez un quiz puis cliquez sur « Commencer ».</div>':'<div class="learning-empty">Aucun fichier chargé. Placez <strong>RWF_Quiz.csv</strong> à côté de l’index ou importez un ou plusieurs fichiers CSV.</div>';}
 function startQuiz(name,shuffle=true){const source=state.quizSets.get(name)||[];const questions=(shuffle?shuffledCopy(source):source.slice()).map(q=>({...q,options:[...q.options]}));state.quiz={name,questions,index:0,score:0,answered:false,shuffle};renderQuizQuestion();}
-function renderQuizQuestion(){const stage=content.querySelector('#quizStage'),qz=state.quiz;if(!stage||!qz)return;if(qz.index>=qz.questions.length)return renderQuizSummary();const q=qz.questions[qz.index];stage.innerHTML='<div class="quiz-progress">Question '+(qz.index+1)+' / '+qz.questions.length+(q.category?' · '+escapeHTML(q.category):'')+'</div><article class="quiz-card"><h3 class="quiz-question">'+escapeHTML(q.question)+'</h3><div class="quiz-options">'+q.options.map((o,i)=>'<button class="quiz-option" type="button" data-answer="'+i+'"><span class="quiz-option-letter">'+String.fromCharCode(65+i)+'</span><span>'+escapeHTML(o)+'</span></button>').join('')+'</div><div id="quizFeedback"></div><div class="quiz-nav"><button class="learning-action" type="button" id="quizRestart">Recommencer</button><button class="learning-action primary" type="button" id="quizNext" disabled>'+(qz.index===qz.questions.length-1?'Voir le résultat':'Question suivante')+'</button></div></article>';
+function renderQuizQuestion(){
+  const stage=content.querySelector('#quizStage'),qz=state.quiz;
+  if(!stage||!qz)return;
+  if(qz.index>=qz.questions.length)return renderQuizSummary();
+
+  const q=qz.questions[qz.index];
+  const hintBlock=q.hint
+    ? '<div class="quiz-hint-zone"><button class="learning-action" type="button" id="quizHintButton">Afficher l’indice</button><div id="quizHint" class="quiz-feedback" hidden>'+escapeHTML(q.hint)+'</div></div>'
+    : '';
+
+  stage.innerHTML=
+    '<div class="quiz-progress">Question '+(qz.index+1)+' / '+qz.questions.length+(q.category?' · '+escapeHTML(q.category):'')+'</div>'+
+    '<article class="quiz-card">'+
+      '<h3 class="quiz-question">'+escapeHTML(q.question)+'</h3>'+
+      hintBlock+
+      '<div class="quiz-options">'+q.options.map((o,i)=>
+        '<button class="quiz-option" type="button" data-answer="'+i+'">'+
+          '<span class="quiz-option-letter">'+String.fromCharCode(65+i)+'</span>'+
+          '<span>'+escapeHTML(o)+'</span>'+
+        '</button>'
+      ).join('')+'</div>'+
+      '<div id="quizFeedback"></div>'+
+      '<div class="quiz-nav">'+
+        '<button class="learning-action" type="button" id="quizRestart">Recommencer</button>'+
+        '<button class="learning-action primary" type="button" id="quizNext" disabled>'+
+          (qz.index===qz.questions.length-1?'Voir le résultat':'Question suivante')+
+        '</button>'+
+      '</div>'+
+    '</article>';
+
   stage.querySelectorAll('[data-answer]').forEach(btn=>btn.onclick=()=>answerQuiz(Number(btn.dataset.answer)));
-  stage.querySelector('#quizRestart').onclick=()=>startQuiz(qz.name,qz.shuffle);stage.querySelector('#quizNext').onclick=()=>{qz.index++;qz.answered=false;renderQuizQuestion();};}
+
+  const hintButton=stage.querySelector('#quizHintButton');
+  if(hintButton){
+    hintButton.onclick=()=>{
+      const hint=stage.querySelector('#quizHint');
+      hint.hidden=false;
+      hintButton.hidden=true;
+    };
+  }
+
+  stage.querySelector('#quizRestart').onclick=()=>startQuiz(qz.name,qz.shuffle);
+  stage.querySelector('#quizNext').onclick=()=>{
+    qz.index++;
+    qz.answered=false;
+    renderQuizQuestion();
+  };
+}
 function answerQuiz(choice){const qz=state.quiz;if(!qz||qz.answered)return;qz.answered=true;const q=qz.questions[qz.index];if(choice===q.correct)qz.score++;content.querySelectorAll('[data-answer]').forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add('correct');else if(i===choice)b.classList.add('wrong');});content.querySelector('#quizFeedback').innerHTML='<div class="quiz-feedback"><strong>'+(choice===q.correct?'Bonne réponse.':'Réponse incorrecte.')+'</strong>'+(q.explanation?'<br>'+escapeHTML(q.explanation):'')+'</div>';content.querySelector('#quizNext').disabled=false;}
 function renderQuizSummary(){const stage=content.querySelector('#quizStage'),qz=state.quiz;const pct=Math.round((qz.score/qz.questions.length)*100);stage.innerHTML='<div class="quiz-summary"><p class="learning-kicker">Résultat</p><div class="quiz-score">'+qz.score+' / '+qz.questions.length+'</div><p>'+pct+' % de réponses correctes</p><button class="learning-action primary" type="button" id="quizAgain">Recommencer ce quiz</button></div>';stage.querySelector('#quizAgain').onclick=()=>startQuiz(qz.name,qz.shuffle);}
 function flashShell(){content.innerHTML='<p class="learning-kicker">Mémoriser par rappel actif</p><h2>Flashcards</h2><p class="learning-intro">Cliquez sur la carte pour la retourner. Les lignes sont regroupées selon la colonne « Jeu » ou « Deck » ; une nouvelle valeur crée automatiquement un nouveau paquet.</p><div class="learning-toolbar"><select id="flashSet" aria-label="Choisir un jeu de flashcards"></select><button class="learning-action primary" id="flashStart" type="button">Ouvrir en ordre aléatoire</button><button class="learning-action" id="flashShuffle" type="button">Remélanger</button><label class="learning-file-label">Importer un ou plusieurs CSV<input id="flashFiles" type="file" accept=".csv,text/csv" multiple></label><div id="flashStatus" class="learning-status"></div></div><div id="flashStage"></div>';
@@ -247,7 +324,7 @@ injectButtons();
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('Version 2.7 inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.2');
+    source=source.replaceAll('Version 2.7','Version 3.3');
 
     // V2.9 : insertion statique et robuste des deux nouveaux modules dans la barre existante.
     source=source.replace(
@@ -296,7 +373,7 @@ parseLinksCell = function(ws,r,c,cellText){
     source=source.replace('</body>',v28Override+'\n'+learningHTML+'\n'+learningJS+'\n</body>');
     document.open();document.write(source);document.close();
   }catch(error){
-    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.2 : '+error.message;
+    document.getElementById('v30-loader').textContent='Erreur de chargement de la version 3.3 : '+error.message;
     console.error(error);
   }
 })();
