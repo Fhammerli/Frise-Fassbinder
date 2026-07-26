@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fassbinder Explorer — Version 3.1 stabilisée</title>
-<!-- BUILD V3.1-STABILISEE — correctif scripts Quiz/Flashcards -->
+<title>Fassbinder Explorer — Version 3.2</title>
+<!-- BUILD V3.2-NORMALISATION-NOMS -->
 </head>
 <body>
-<p id="v31-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.1…</p>
+<p id="v31-loader" style="font-family:system-ui,sans-serif;padding:2rem">Chargement de la version 3.2…</p>
 <script>
 (async function loadVersion31(){
   'use strict';
@@ -166,8 +166,8 @@ function openQuiz(){quizShell();openDrawer()}function openFlash(){flashShell();o
 window.__openFassbinderQuiz=openQuiz;window.__openFassbinderFlashcards=openFlash;
 Promise.all([...DATA_FILES.map(probeFile),...QUIZ_FILES.map(f=>loadLearningFile(f,'quiz')),...FLASH_FILES.map(f=>loadLearningFile(f,'flash'))]).finally(injectButtons);injectButtons();
 })();
-__V31_SCRIPT_END__`;
-  extensionJS=extensionJS.replace('__V31_SCRIPT_END__',scriptEnd);
+<\/script>`;
+  extensionJS=extensionJS.replaceAll('<\/script>',scriptEnd);
 
   let multiLinks=String.raw`
 <script id="v31-multilinks-fix">
@@ -180,20 +180,109 @@ parseLinksCell=function(ws,r,c,cellText){
   chunks.forEach((chunk,i)=>{const pipe=chunk.indexOf('|');let label='',url='';if(pipe>-1){label=chunk.slice(0,pipe).trim();url=chunk.slice(pipe+1).trim()}else if(/^(https?:\/\/|www\.)/i.test(chunk)){url=chunk}else if(i===0&&nativeUrl){label=chunk;url=nativeUrl}else{console.warn('Lien non identifié : « '+chunk+' ». Utilisez « Libellé|https://adresse ».');return}if(/^www\./i.test(url))url='https://'+url;if(!url)return;const kind=classifyLinkKind(url);links.push({url,kind,customLabel:Boolean(label),label:label||defaultLinkLabel(kind,links.length,chunks.length)})});
   return links;
 };
-__V31_SCRIPT_END__`;
-  multiLinks=multiLinks.replace('__V31_SCRIPT_END__',scriptEnd);
+<\/script>`;
+  multiLinks=multiLinks.replaceAll('<\/script>',scriptEnd);
+
+  let namesNormalizer=String.raw`
+<script id="v32-names-normalizer">
+(function(){
+'use strict';
+
+// Clé de comparaison stable : accents, apostrophes, tirets, ponctuation et
+// ordre « Nom, Prénom » ne doivent pas empêcher de retrouver une personne.
+function v32NameKey(value){
+  return String(value||'')
+    .replace(/^\s*pers[-_:]\s*/i,'')
+    .replace(/^person[-_:]\s*/i,'')
+    .replace(/\s*,\s*/g,' ')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/ß/g,'ss').replace(/æ/g,'ae').replace(/œ/g,'oe')
+    .replace(/[’‘ʼ‛\u0060´]/g,"'")
+    .toLocaleLowerCase('fr')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+function v32CanonicalId(value){
+  const key=v32NameKey(value)||'personne';
+  return 'pers-'+key.replace(/\s+/g,'-');
+}
+
+function v32NameVariants(person){
+  const values=[
+    person.id,person.name,person.displayName,person.sourceName,person.sortName,
+    ...(person.aliases||[]),...(person.nicknames||[])
+  ].filter(Boolean).map(value=>String(value).trim()).filter(Boolean);
+  const display=String(person.displayName||person.name||'').trim();
+  const first=String(person.firstName||'').trim();
+  const family=String(person.sortName||'').trim();
+  if(first&&family){
+    values.push(first+' '+family,family+' '+first,family+', '+first);
+  }else if(display.includes(',')){
+    const parts=display.split(',').map(x=>x.trim()).filter(Boolean);
+    if(parts.length===2) values.push(parts[1]+' '+parts[0]);
+  }
+  const seen=new Set();
+  return values.filter(value=>{
+    const key=v32NameKey(value);
+    if(!key||seen.has(key))return false;
+    seen.add(key);return true;
+  });
+}
+
+function v32NormalizePeople(people){
+  const idOwners=new Map();
+  return (people||[]).map((person,index)=>{
+    const explicit=String(person.id||'').trim();
+    let id=/^(pers|person)-/i.test(explicit)?explicit:v32CanonicalId(explicit||person.displayName||person.name);
+    const base=id;let suffix=2;
+    while(idOwners.has(v32NameKey(id))&&idOwners.get(v32NameKey(id))!==index)id=base+'-'+suffix++;
+    idOwners.set(v32NameKey(id),index);
+    const aliases=v32NameVariants({...person,id});
+    return {...person,id,aliases,normalizationKey:v32NameKey(person.displayName||person.name),canonicalId:id};
+  });
+}
+
+// Le parseur d'origine reste la source des données. Le module 3.2 ne fait
+// qu'ajouter le modèle canonique immédiatement après sa lecture.
+if(typeof parsePeopleWorkbook==='function'){
+  const v31ParsePeopleWorkbook=parsePeopleWorkbook;
+  parsePeopleWorkbook=function(buffer){return v32NormalizePeople(v31ParsePeopleWorkbook(buffer));};
+}
+
+// Résolution commune aux noms visibles, variantes, surnoms et identifiants.
+personByReference=function(reference){
+  const raw=String(reference||'').trim();
+  if(!raw)return null;
+  const key=v32NameKey(raw);
+  return PEOPLE_DATA.find(person=>{
+    if(person.id===raw||v32NameKey(person.id)===key)return true;
+    return v32NameVariants(person).some(alias=>v32NameKey(alias)===key);
+  })||null;
+};
+
+window.FassbinderNameNormalizer=Object.freeze({
+  version:'3.2',
+  key:v32NameKey,
+  canonicalId:v32CanonicalId,
+  normalizePeople:v32NormalizePeople,
+  resolve:function(reference){return personByReference(reference);}
+});
+})();
+<\/script>`;
+  namesNormalizer=namesNormalizer.replaceAll('<\/script>',scriptEnd);
 
   try{
     const response=await fetch(sourceUrl,{cache:'no-store'});
     if(!response.ok)throw new Error('socle inaccessible ('+response.status+')');
     let source=await response.text();
-    source=source.replaceAll('Version 2.7','Version 3.1');
+    source=source.replaceAll('Version 2.7','Version 3.2');
     source=source.replace(/(<div class="module-buttons">[\s\S]*?<\/div>)/,block=>block.includes('id="quizOpen"')?block:block.replace('</div>','<button class="learning-tool-button" id="quizOpen" type="button">Quiz</button><button class="learning-tool-button" id="flashOpen" type="button">Flashcards</button></div>'));
     if(!source.includes('</head>')||!source.includes('</body>'))throw new Error('structure HTML du socle non reconnue');
     source=source.replace('</head>',extensionCSS+'\n</head>');
-    source=source.replace('</body>',multiLinks+'\n'+extensionHTML+'\n'+extensionJS+'\n</body>');
+    source=source.replace('</body>',multiLinks+'\n'+namesNormalizer+'\n'+extensionHTML+'\n'+extensionJS+'\n</body>');
     document.open();document.write(source);document.close();
-  }catch(error){document.getElementById('v31-loader').textContent='Erreur de chargement de la version 3.1 : '+error.message;console.error(error)}
+  }catch(error){document.getElementById('v31-loader').textContent='Erreur de chargement de la version 3.2 : '+error.message;console.error(error)}
 })();
 </script>
 </body>
