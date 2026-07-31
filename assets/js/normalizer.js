@@ -53,14 +53,24 @@ function v32CanonicalId(value){
 }
 
 function v32NameVariants(person){
+  // Les variantes visibles sont prioritaires. Les identifiants techniques
+  // restent résolus séparément mais ne doivent jamais devenir du texte cliquable.
   const values=[
-    person.id,person.name,person.displayName,person.sourceName,person.sortName,
+    person.name,person.displayName,person.sourceName,
     ...(person.aliases||[]),...(person.nicknames||[])
   ].filter(Boolean).map(value=>String(value).trim()).filter(Boolean);
   const display=String(person.displayName||person.name||'').trim();
   const first=String(person.firstName||'').trim();
   const family=String(person.sortName||'').trim();
-  if(first&&family){
+  const firstKey=v32NameKey(first);
+  const familyKey=v32NameKey(family);
+  const displayKey=v32NameKey(display);
+  const familyAlreadyContainsFirst=firstKey&&familyKey&&(
+    familyKey===firstKey ||
+    familyKey.startsWith(firstKey+' ') ||
+    familyKey.endsWith(' '+firstKey)
+  );
+  if(first&&family&&!familyAlreadyContainsFirst){
     values.push(first+' '+family,family+' '+first,family+', '+first);
   }else if(display.includes(',')){
     const parts=display.split(',').map(x=>x.trim()).filter(Boolean);
@@ -68,7 +78,11 @@ function v32NameVariants(person){
   }
   const seen=new Set();
   return values.filter(value=>{
+    // Un ID canonique sert à résoudre une référence explicite, pas à baliser le texte.
+    if(/^\s*(pers|person)[-_:]/i.test(value)) return false;
     const key=v32NameKey(value);
+    // Lorsque prénom et patronyme sont connus, le patronyme seul est trop ambigu.
+    if(firstKey&&familyKey&&displayKey&&key===familyKey&&key!==displayKey) return false;
     if(!key||seen.has(key))return false;
     seen.add(key);return true;
   });
@@ -108,4 +122,3 @@ window.FassbinderNameNormalizer=Object.freeze({
     )||null;
   }
 });
-
