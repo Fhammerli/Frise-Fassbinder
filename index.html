@@ -140,8 +140,21 @@ function parseDelimited(raw){
   const delimiter=scored[0]&&scored[0].count>1?scored[0].delimiter:',';
   const records=parseRows(delimiter);
   if(!records.length)return [];
-  const headers=records.shift().map(v=>text(v).replace(/^['"]|['"]$/g,'').replace(/\u200B/g,'').trim());
-  return records.map(values=>{
+
+  // Certains fichiers Numbers commencent par une ligne-titre (par exemple
+  // « RWF_Flashcards »), puis placent les vrais en-têtes sur la ligne 2.
+  // On recherche donc la première ligne contenant au moins Front et Back,
+  // dans les dix premières lignes, au lieu de supposer que les en-têtes sont
+  // toujours sur la première ligne du fichier.
+  const headerIndex=records.findIndex((candidate,index)=>{
+    if(index>9)return false;
+    const keys=candidate.map(v=>normKey(text(v)));
+    return keys.includes('front') && keys.includes('back');
+  });
+  const effectiveHeaderIndex=headerIndex>=0?headerIndex:0;
+  const headers=records[effectiveHeaderIndex].map(v=>text(v).replace(/^['"]|['"]$/g,'').replace(/\u200B/g,'').trim());
+  const dataRecords=records.slice(effectiveHeaderIndex+1);
+  return dataRecords.map(values=>{
     const row={};
     headers.forEach((header,i)=>{if(header)row[header]=text(values[i]??'');});
     // Conserver aussi les valeurs par position pour les CSV dont les en-têtes
@@ -247,7 +260,7 @@ async function loadURL(source,type){
     const raw=await r.text();
     const rows=parseDelimited(raw);
     const fallback=publicLabel||url.split('/').pop().replace(/\.csv$/i,'').replace(/[_-]+/g,' ');
-    window.__flashLoadDiagnostics={url,bytes:raw.length,rows:rows.length,firstKeys:rows[0]?Object.keys(rows[0]):[]};
+    window.__flashLoadDiagnostics={url,bytes:raw.length,rows:rows.length,firstKeys:rows[0]?Object.keys(rows[0]):[],note:'Les en-têtes peuvent être précédés d’une ligne-titre.'};
     let items=type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback);
     if(type==='quiz'&&publicLabel){
       items=items.map(item=>({...item,group:publicLabel}));
