@@ -57,6 +57,7 @@
   .flash-face.back{transform:rotateY(180deg);border-top-color:var(--accent);background:#FFF8F3;}
   .flash-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#687885;margin-bottom:16px;}
   .flash-text{font-size:23px;line-height:1.45;color:#1D2B36;white-space:pre-line;}
+  .flash-image{display:block;max-width:100%;max-height:320px;width:auto;height:auto;object-fit:contain;margin:0 auto;}
   .flash-hint{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#85919A;margin-top:20px;}
   .flash-controls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;}
   .flash-counter{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6C7984;min-width:96px;text-align:center;}
@@ -91,6 +92,24 @@ const closeBtn=document.getElementById('learningClose');
 const normKey=s=>String(s??'').replace(/^\uFEFF/,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const text=v=>v==null?'':String(v).replace(/^\uFEFF/,'').trim();
 const escapeHTML=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;',"\"":'&quot;'}[c]));
+
+// Le CSV contient parfois du HTML pour afficher une image. On n'injecte
+// pas directement le contenu : seule une balise img contrôlée est autorisée.
+function renderFlashContent(value){
+  const raw=String(value??'').trim();
+  if(!/<img\b/i.test(raw))return escapeHTML(raw);
+  const match=raw.match(/<img\b([^>]*)>/i);
+  if(!match)return escapeHTML(raw);
+  const attrs=match[1];
+  const srcMatch=attrs.match(/\bsrc\s*=\s*["']([^"']+)["']/i);
+  if(!srcMatch)return escapeHTML(raw);
+  const src=srcMatch[1].trim();
+  if(!src||/^(?:javascript|vbscript|data):/i.test(src))return escapeHTML(raw);
+  const altMatch=attrs.match(/\balt\s*=\s*["']([^"']*)["']/i);
+  const alt=altMatch?altMatch[1]:'Image de flashcard';
+  return '<img class="flash-image" src="'+escapeHTML(src)+'" alt="'+escapeHTML(alt)+'">';
+}
+
 function field(row,aliases){
   const entries=Object.entries(row);
   for(const alias of aliases){
@@ -474,7 +493,7 @@ function startFlash(name,shuffle=true){
   state.flash={name:label,cards,index:0,shuffle};
   renderFlashCard();
 }
-function renderFlashCard(){const stage=content.querySelector('#flashStage'),fs=state.flash;if(!stage||!fs||!fs.cards.length)return renderFlashEmpty();const c=fs.cards[fs.index];stage.innerHTML='<div class="quiz-progress">'+escapeHTML(fs.name)+(c.category?' · '+escapeHTML(c.category):'')+'</div><div class="flashcard-wrap"><div class="flashcard" id="flashCard" tabindex="0" role="button" aria-label="Retourner la carte"><div class="flash-face front"><div class="flash-label">Question</div><div class="flash-text">'+escapeHTML(c.front)+'</div><div class="flash-hint">Cliquer pour afficher la réponse</div></div><div class="flash-face back"><div class="flash-label">Réponse</div><div class="flash-text">'+escapeHTML(c.back)+'</div><div class="flash-hint">Cliquer pour revenir à la question</div></div></div></div><div class="flash-controls"><button class="learning-action" id="flashPrev" type="button">← Précédente</button><span class="flash-counter">'+(fs.index+1)+' / '+fs.cards.length+'</span><button class="learning-action primary" id="flashNext" type="button">Suivante →</button></div>';
+function renderFlashCard(){const stage=content.querySelector('#flashStage'),fs=state.flash;if(!stage||!fs||!fs.cards.length)return renderFlashEmpty();const c=fs.cards[fs.index];stage.innerHTML='<div class="quiz-progress">'+escapeHTML(fs.name)+(c.category?' · '+escapeHTML(c.category):'')+'</div><div class="flashcard-wrap"><div class="flashcard" id="flashCard" tabindex="0" role="button" aria-label="Retourner la carte"><div class="flash-face front"><div class="flash-label">Question</div><div class="flash-text">'+renderFlashContent(c.front)+'</div><div class="flash-hint">Cliquer pour afficher la réponse</div></div><div class="flash-face back"><div class="flash-label">Réponse</div><div class="flash-text">'+renderFlashContent(c.back)+'</div><div class="flash-hint">Cliquer pour revenir à la question</div></div></div></div><div class="flash-controls"><button class="learning-action" id="flashPrev" type="button">← Précédente</button><span class="flash-counter">'+(fs.index+1)+' / '+fs.cards.length+'</span><button class="learning-action primary" id="flashNext" type="button">Suivante →</button></div>';
   const card=stage.querySelector('#flashCard');const flip=()=>card.classList.toggle('flipped');card.onclick=flip;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}};stage.querySelector('#flashPrev').onclick=()=>{fs.index=(fs.index-1+fs.cards.length)%fs.cards.length;renderFlashCard();};stage.querySelector('#flashNext').onclick=()=>{fs.index=(fs.index+1)%fs.cards.length;renderFlashCard();};}
 async function importFiles(files,type){const map=type==='quiz'?state.quizSets:state.flashSets;let added=0,ignored=0;for(const file of files){try{const raw=await file.text();const rows=parseDelimited(raw);const fallback=file.name.replace(/\\.csv$/i,'').replace(/[_-]+/g,' ');const items=type==='quiz'?quizRows(rows,fallback):flashRows(rows,fallback);if(items.length){addToMap(map,items);added+=items.length;}else ignored++;}catch(err){console.error(err);ignored++;}}
   if(type==='quiz'){quizShell();content.querySelector('#quizStatus').textContent=added+' question(s) ajoutée(s)'+(ignored?' · '+ignored+' fichier(s) sans ligne reconnue':'');content.querySelector('#quizStatus').className='learning-status '+(added?'ok':'err');}
